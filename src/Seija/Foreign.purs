@@ -5,17 +5,20 @@ import Color (Color)
 import Color.Scheme.X11 (darkgray)
 import Data.ColorEx (toNumberArray)
 import Data.Default (class Default, default)
-import Data.Maybe (Maybe(..), fromJust)
+import Data.Either (Either(..))
+import Data.Lens (Prism', lens, prism, prism')
+import Data.Maybe (Maybe(..))
 import Data.MaybeEx (maybeToList)
 import Data.Monoid ((<>))
-import Data.Newtype (class Newtype)
+import Data.Newtype (class Newtype, unwrap)
+import Data.Profunctor.Strong (class Strong)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object as FO
-import Partial.Unsafe (unsafePartial)
 import Prelude (Unit, map, ($), (<<<))
+import Unsafe.Coerce (unsafeCoerce)
 
 class ToJsObject a where
     toJsObject::a -> FO.Object Foreign
@@ -28,9 +31,6 @@ type WindowConfigRecord = {
 
 newtype WindowConfig = WindowConfig WindowConfigRecord
 derive instance newtypeWindowConfig :: Newtype WindowConfig _
-
-mapWindow::WindowConfig -> (WindowConfigRecord -> WindowConfigRecord) -> WindowConfig
-mapWindow (WindowConfig cfg) f = WindowConfig $ f cfg
 
 
 instance defaultWindowConfig :: Default WindowConfig where
@@ -68,32 +68,53 @@ instance defaultSimple2dConfig :: Default Simple2dConfig where
 instance toJsObejctSimple2dConfig:: ToJsObject Simple2dConfig where
     toJsObject (Simple2dConfig cfg) = FO.fromFoldable ["window" /\ (toForeign $ toJsObject cfg.window)]
 
+--lWindow::Prism' Simple2dConfig WindowConfig
+--lWindow = prism (\w -> Simple2dConfig {window : w}) (\s -> Right $ (unwrap s).window)
+
+_window :: forall a. Strong a => a WindowConfig WindowConfig -> a Simple2dConfig Simple2dConfig
+_window = lens (\(Simple2dConfig {window}) -> window) (\(Simple2dConfig r) value -> Simple2dConfig (r {window = value}))
+
+_bgColor :: forall a. Strong a => a (Maybe Color) (Maybe Color) -> a WindowConfig WindowConfig
+_bgColor = lens (\(WindowConfig r) -> r.bgColor) (\(WindowConfig r) value -> WindowConfig (r {bgColor = value}))
+
+
+_width :: forall a. Strong a => a Int Int -> a WindowConfig WindowConfig
+_width = lens (\(WindowConfig r) -> r.width) (\(WindowConfig r) value -> WindowConfig (r {width = value}))
+
+_height :: forall a. Strong a => a Int Int -> a WindowConfig WindowConfig
+_height = lens (\(WindowConfig r) -> r.height) (\(WindowConfig r) value -> WindowConfig (r {height = value}))
+
+_windowBgColor :: forall a. Strong a => a (Maybe Color) (Maybe Color) -> a Simple2dConfig Simple2dConfig
+_windowBgColor =  _window <<< _bgColor
+
+
+_windowWidth :: forall a. Strong a => a Int Int -> a Simple2dConfig Simple2dConfig
+_windowWidth =  _window <<< _width
+
+_windowHeight :: forall a. Strong a => a Int Int -> a Simple2dConfig Simple2dConfig
+_windowHeight =  _window <<< _height
 
 newtype AppConfig = AppConfig {
-    onStart::Maybe  (Effect Unit),
-    onUpdate::Maybe (Effect Unit),
-    onQuit::Maybe (Effect Unit),
+    onStart::  (World -> Effect Unit),
+    onUpdate:: (World -> Effect Boolean),
+    onQuit::   (World -> Effect Unit),
     resPath::Maybe String
 }
 
-instance defaultAppConfig :: Default AppConfig where
-    default::AppConfig
-    default = AppConfig {
-        onStart:Nothing,
-        onUpdate:Nothing,
-        onQuit:Nothing,
-        resPath:Nothing
-    }
-
 instance toJsObjectAppConfig :: ToJsObject AppConfig where
-    toJsObject (AppConfig cfg) = FO.fromFoldable ["OnStart" /\  (toForeign $ unsafePartial $ fromJust cfg.onStart),
-                                                  "OnUpdate" /\ (toForeign $ unsafePartial $ fromJust cfg.onUpdate)
-                                                 ]
+    toJsObject (AppConfig cfg) = FO.fromFoldable $ ["OnStart"  /\  (toForeign  cfg.onStart),
+                                                    "OnUpdate" /\  (toForeign  cfg.onUpdate),
+                                                    "OnQuit"   /\  (toForeign cfg.onQuit)] <> path
+     where
+       path::Array (Tuple String Foreign)
+       path = map (\s -> Tuple "ResPath" $ toForeign s) $ maybeToList cfg.resPath
 
 
 foreign import appVersion::String
 foreign import data Simple2d:: Type
 foreign import data App:: Type
+foreign import data World:: Type
+foreign import data Loader:: Type
 
 foreign import _newSimple2d::FO.Object Foreign -> Simple2d
 
@@ -106,3 +127,19 @@ newApp s2d cfg = _newApp s2d (toJsObject cfg)
 foreign import _newApp::Simple2d -> FO.Object Foreign -> App
 
 foreign import runApp::App -> Effect Unit
+
+foreign import fetchLoader::World -> Effect Loader
+
+foreign import loadAssetSync::World -> Loader -> Int -> String -> Effect Int
+
+foreign import newEntity::World -> Effect Int
+
+foreign import addCABEventRoot::World -> Int -> Effect Unit
+
+foreign import _newImage::World -> Int -> Foreign -> FO.Object Foreign -> Effect Int
+
+
+
+
+
+

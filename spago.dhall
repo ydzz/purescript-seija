@@ -1,5 +1,13 @@
 { name = "my-project"
-, dependencies = [ "console", "effect", "psci-support" ,"options","colors","maybe"]
+, dependencies =
+  [ "colors"
+  , "console"
+  , "effect"
+  , "maybe"
+  , "options"
+  , "profunctor-lenses"
+  , "psci-support"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
