@@ -1,12 +1,18 @@
 module Seija.Asset where
 
 import Control.Monad.Reader (ask)
+import Data.Array as A
+import Data.Int (toNumber)
 import Data.Monoid ((<>))
 import Data.Tuple (Tuple(..))
+import Data.Vec (vec2)
 import Effect.Class (liftEffect)
+import Partial.Unsafe (unsafePartial)
 import Prelude (class Show, bind, pure, show, ($))
-import Seija.App (AppReader)
+import Seija.App (AppReader, askWorld)
+import Seija.Foreign (World)
 import Seija.Foreign as F
+import Seija.Math.Vector (Vector2f)
 
 data Asset2DType = Textute | Json | SpriteSheet | Font
 
@@ -23,14 +29,18 @@ instance showAsset2DType :: Show Asset2DType where
    show Font = "Font"      
 
 newtype Asset2D = Asset2D {
-   resId::Int,
+   assetId::Int,
    assetType::Asset2DType
 }
 
 instance showAsset2D :: Show Asset2D where
-   show (Asset2D {resId,assetType}) = "Asset(" <> show assetType <> ":" <> show resId <> ")"
+   show (Asset2D {assetId,assetType}) = "Asset(" <> show assetType <> ":" <> show assetId <> ")"
 
 type AssetPath = Tuple Asset2DType String
+
+asset2dId::Asset2D -> Int
+asset2dId (Asset2D asset) = asset.assetId
+
 
 texturePath::String -> AssetPath
 texturePath = Tuple Textute
@@ -47,7 +57,23 @@ fontPath = Tuple Font
 
 loadAssetSync::AssetPath -> AppReader Asset2D
 loadAssetSync (Tuple assetType path) = do
-    let id = assetTypeToId assetType
+    let typId = assetTypeToId assetType
     handle <- ask
-    assetId <- liftEffect $ F.loadAssetSync handle.world handle.loader id path
-    pure $ Asset2D {resId:assetId, assetType}
+    id <- liftEffect $ F.loadAssetSync handle.world handle.loader typId path
+    pure $ Asset2D {assetId:id, assetType}
+
+
+getTextureSize::Asset2D -> AppReader Vector2f
+getTextureSize (Asset2D asset) = do
+   world <- askWorld
+   let arr = F._getTextureSize world asset.assetId
+   let w = toNumber $ unsafePartial $ A.unsafeIndex arr 0
+   let h = toNumber $ unsafePartial $ A.unsafeIndex arr 1
+   pure $ vec2 w h
+
+getTextureSizeWorld::World -> Asset2D -> Vector2f
+getTextureSizeWorld world (Asset2D asset) = vec2 w h
+   where
+      arr = F._getTextureSize world asset.assetId
+      w = toNumber $ unsafePartial $ A.unsafeIndex arr 0
+      h = toNumber $ unsafePartial $ A.unsafeIndex arr 1

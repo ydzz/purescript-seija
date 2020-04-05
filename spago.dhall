@@ -5,6 +5,7 @@
   , "effect"
   , "maybe"
   , "options"
+  , "sized-vectors"
   , "profunctor-lenses"
   , "psci-support"
   ]

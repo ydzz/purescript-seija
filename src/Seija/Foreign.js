@@ -68,15 +68,52 @@ exports.addCABEventRoot = function (world) {
   }
 }
 
-exports._newImage = function (world) {
+exports._getTextureSize = function(world) {
   return function(texId) {
-    return function(parent) {
-      return function(attr) {
-        return function() {
-          return seija.g2d.newImage(world,texId,parent,attr);
-        }
+    return seija.g2d.getTextureSize(world,texId);
+  }
+}
+
+exports.addTransformByProp = function (world) {
+  return function(eid) {
+    return function(prop) {
+      return function() {
+        return seija.g2d.addTransform(world,eid,prop.pos,prop.scale,prop.rotate);
       }
     }
   }
 }
 
+exports.addRect2DByProp = function (world) {
+  return function(eid) {
+    return function(prop) {
+      return function() {
+        var sizeW = null;
+        var sizeH = null;
+        var anchorX = 0.5;
+        var anchorY = 0.5;
+        if (prop.size) {
+          sizeW = prop.size[0];
+          sizeH = prop.size[1];
+        }
+        if(prop.anchorX) {
+          anchorX = prop.anchor[0];
+          anchorY = prop.anchor[1];
+        }
+        return seija.g2d.addRect2d(world,eid,sizeW,sizeH,anchorX,anchorY);
+      }
+    }
+  }
+}
+
+exports.addImageRenderByProp = function(world) {
+  return function(eid) {
+    return function(texId) {
+      return function(prop) {
+        return function() {
+          return seija.g2d.addImageRender(world,eid,texId,prop.color);
+        }
+      }
+    }
+  }
+}

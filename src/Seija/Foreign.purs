@@ -18,6 +18,7 @@ import Effect (Effect)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object as FO
 import Prelude (Unit, map, ($), (<<<))
+import Seija.Component (PropValue)
 import Unsafe.Coerce (unsafeCoerce)
 
 class ToJsObject a where
@@ -136,7 +137,19 @@ foreign import newEntity::World -> Effect Int
 
 foreign import addCABEventRoot::World -> Int -> Effect Unit
 
-foreign import _newImage::World -> Int -> Foreign -> FO.Object Foreign -> Effect Int
+foreign import _getTextureSize::World -> Int -> Array Int
+
+foreign import addTransformByProp::World -> Int -> FO.Object PropValue -> Effect Boolean
+
+foreign import addRect2DByProp::World -> Int -> FO.Object PropValue -> Effect Boolean
+
+foreign import addImageRenderByProp::World -> Int -> Int -> FO.Object PropValue -> Effect Boolean
+
+
+
+
+
+
 
 
 

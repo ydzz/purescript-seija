@@ -3,13 +3,16 @@ module Seija.Simple2D where
 import Prelude
 
 import Control.Monad.Reader (ask)
+import Color (Color)
+import Data.ColorEx (toNumberArray)
 import Data.Maybe (Maybe, fromMaybe)
+import Data.Vec (toArray, vec2)
 import Effect.Class (liftEffect)
-import Foreign.Object as O
 import Seija.App (AppReader, askWorld)
-import Seija.Asset (Asset2D(..))
+import Seija.Asset (Asset2D(..), asset2dId)
 import Seija.Foreign (toForeign)
 import Seija.Foreign as F
+import Seija.Math.Vector (Vector3f, Vector2f)
 
 type Entity = Int
 
@@ -27,10 +30,3 @@ addCABEventRoot e = do
 
 newEventRoot::AppReader Entity
 newEventRoot = newEntity >>= addCABEventRoot
-    
-
-newImage::Asset2D -> Maybe Entity -> AppReader Entity
-newImage (Asset2D s2d) parent = do
-   world <- askWorld
-   let jsParent = fromMaybe (toForeign false) (map toForeign parent)
-   liftEffect $ F._newImage world s2d.resId jsParent (O.empty)
