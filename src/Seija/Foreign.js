@@ -117,3 +117,59 @@ exports.addImageRenderByProp = function(world) {
     }
   }
 }
+
+exports.setParent = function(world) {
+  return function(eid) {
+    return function(pid) {
+      return function() {
+        return seija.g2d.setParent(world,eid,pid);
+      }
+    }
+  }
+}
+
+exports.getEvent = function(world) {
+  return function(eid) {
+    return function(evType) {
+      return function(isCapture) {
+        return function() {
+          return seija.g2d.getEvent(world,eid,evType,isCapture);
+        }
+      }
+    }
+  }
+}
+
+exports.chainEventEffect = function(ev) {
+  return function(fn) {
+    return function() {
+      chainEvent(ev,function(val) {
+        fn(val)();
+        return null;
+      });
+    }
+  }
+}
+exports.chainEvent = function(ev) {
+  return function(f) {
+      return chainEvent(ev,function(a) {
+        var str = f(a);
+        return str;
+      });
+  }
+}
+exports._getViewPortSize = function(world) {
+  return function() {
+      return seija.g2d.getViewPortSize(world);
+  }
+}
+
+function chainEvent(event,f) {
+  var newEvent = seija.g2d.chainEvent(event,f);
+  newEvent.f = f;
+  if(event.childrens == undefined) {
+      event.childrens = [];
+  }
+  event.childrens.push(newEvent);
+  return newEvent;
+}

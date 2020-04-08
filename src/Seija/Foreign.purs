@@ -116,6 +116,7 @@ foreign import data Simple2d:: Type
 foreign import data App:: Type
 foreign import data World:: Type
 foreign import data Loader:: Type
+foreign import data RawEvent:: Type
 
 foreign import _newSimple2d::FO.Object Foreign -> Simple2d
 
@@ -144,6 +145,20 @@ foreign import addTransformByProp::World -> Int -> FO.Object PropValue -> Effect
 foreign import addRect2DByProp::World -> Int -> FO.Object PropValue -> Effect Boolean
 
 foreign import addImageRenderByProp::World -> Int -> Int -> FO.Object PropValue -> Effect Boolean
+
+foreign import getEvent::World -> Int -> Int -> Boolean -> Effect RawEvent
+
+foreign import chainEventEffect::forall a. RawEvent -> (a -> Effect Unit) -> Effect Unit
+
+foreign import setParent::World -> Int -> Int -> Effect Unit
+
+foreign import chainEvent::forall a b. RawEvent -> (a -> b) -> RawEvent
+
+foreign import _getViewPortSize::World -> Effect (Array Number)
+
+
+
+
 
 
 

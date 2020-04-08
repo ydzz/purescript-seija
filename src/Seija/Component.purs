@@ -1,6 +1,8 @@
 module Seija.Component where
 
+import Color (Color)
 import Data.Array (filter)
+import Data.ColorEx (toNumberArray)
 import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (D2, D3)
 import Data.Vec (Vec, toArray)
@@ -34,6 +36,9 @@ propFromVector3f v = unsafeCoerce $ toArray v
 propFromVector2f ∷ Vector2f -> PropValue
 propFromVector2f v = unsafeCoerce $ toArray v
 
+propFromColor::Color -> PropValue
+propFromColor c = unsafeCoerce $ toNumberArray c
+
 class IsProp a where
   toPropValue :: a -> PropValue
 
@@ -51,6 +56,9 @@ instance isPropVector3f :: IsProp (Vec D3 Number) where
 
 instance isPropVector2f :: IsProp (Vec D2 Number) where
   toPropValue = propFromVector2f
+
+instance isPropColor :: IsProp Color where
+  toPropValue = propFromColor
 
 
 prop::forall a. (IsProp a) => ComponentType -> String -> a -> Prop
@@ -74,4 +82,7 @@ sSize = prop Rect2D "size"
 
 sAnchor::Vector2f -> Prop
 sAnchor = prop Rect2D "anchor"
+
+iColor::Color -> Prop
+iColor = prop ImageRender "color"
 
