@@ -10,6 +10,13 @@ import Seija.Simple2D (Entity)
 
 newtype Event a = Event RawEvent
 
+data EventType = TouchStart | TouchEnd | Click
+
+numEventType :: EventType -> Int
+numEventType TouchStart = 0
+numEventType TouchEnd = 1
+numEventType Click = 2
+
 instance functorEvent :: Functor Event where
   map f (Event ev) = Event $ chainEvent ev f
 
@@ -18,10 +25,10 @@ fetchEventWorld world eid isCapture = do
   ev <- getEvent world eid 0 isCapture
   pure $ Event ev
 
-fetchEvent::forall a.Entity -> Boolean -> AppReader (Event a)
-fetchEvent eid isCapture =  do
+fetchEvent::forall a.Entity -> EventType -> Boolean -> AppReader (Event a)
+fetchEvent eid typ isCapture =  do
     world <- askWorld
-    ev <- liftEffect $ getEvent world eid 0 isCapture
+    ev <- liftEffect $ getEvent world eid (numEventType typ) isCapture
     pure $ Event ev
 
 effectEvent::forall a. Event a -> (a -> Effect Unit) -> Effect Unit
