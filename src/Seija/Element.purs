@@ -1,14 +1,24 @@
-module Seija.Element where
+module Seija.Element (
+  image,sprite
+) where
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Array (index)
+import Data.Int (fromNumber)
+import Data.Maybe (Maybe(..), fromJust)
+import Data.Tuple.Nested ((/\))
+import Data.Vec (vec2)
+import Effect (Effect)
 import Effect.Class (liftEffect)
 import Foreign.Object as O
+import Partial.Unsafe (unsafePartial)
 import Seija.App (AppReader, askWorld)
-import Seija.Asset (Asset2D(..), getTextureSizeWorld)
-import Seija.Component (ComponentType(..), Prop, buildProp, propFromVector2f, setRect2dBehaviorWorld, setTransformBehaviorWorld)
-import Seija.Foreign (Entity, addImageRenderByProp, addRect2DByProp, addTransformByProp, newEntity, setParent)
+import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
+import Seija.Component (ComponentType(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, setRect2dBehaviorWorld, setTransformBehaviorWorld)
+import Seija.Foreign (Entity, World, _addSpriteRenderByProp, _addTransparent, addImageRenderByProp, addRect2DByProp, addTransformByProp, newEntity, setParent)
+import Unsafe.Coerce (unsafeCoerce)
+
 
 image::Asset2D -> Array Prop -> Maybe Entity -> AppReader Entity
 image s2d@(Asset2D asset) arr parent = do
@@ -16,18 +26,52 @@ image s2d@(Asset2D asset) arr parent = do
     liftEffect $ do
      e <- newEntity world
      _ <- addTransformByProp world e (buildProp arr Transform false)
-     case parent of
-        Just p -> setParent world e p
-        Nothing -> pure unit
+     addParent world e parent
      let rectProp =  buildProp arr Rect2D false
-     _ <- if (not $ O.member "size" rectProp) 
+     if (not $ O.member "size" rectProp) 
       then do
         let vecSize = getTextureSizeWorld world s2d
         let newRectProp = O.insert "size" (propFromVector2f vecSize) rectProp
-        addRect2DByProp world e newRectProp
-      else do
-        addRect2DByProp world e rectProp
+        addRect2DByProp world e newRectProp *> pure unit
+      else  addRect2DByProp world e rectProp *> pure unit
      _ <- addImageRenderByProp world e asset.assetId (buildProp arr ImageRender false)
+     --set behavior
      setTransformBehaviorWorld world e arr
      setRect2dBehaviorWorld world e arr
      pure e
+
+sprite::Asset2D -> String -> Array Prop -> Maybe Entity -> AppReader Entity
+sprite s2d@(Asset2D asset) spriteName arr parent = do
+  world <- askWorld
+  liftEffect $ do
+    e <- newEntity world
+    _ <- addTransformByProp world e (buildProp arr Transform false)
+    addParent world e parent
+    let rectProp =  buildProp arr Rect2D false
+    let isNoSize = not $ O.member "size" rectProp
+    if (isNoSize && isSetDefault mayImageIntType) 
+    then do
+        let (_ /\ _ /\ w /\ h /\ unit) = getSpirteRectInfo world s2d spriteName
+        let newRectProp = O.insert "size" (propFromVector2f $ vec2 w h) rectProp
+        addRect2DByProp world e newRectProp *> pure unit
+    else  addRect2DByProp world e rectProp *> pure unit
+    _addSpriteRenderByProp world e asset.assetId spriteName spriteProp
+    _addTransparent world e
+    --set behavior
+    setTransformBehaviorWorld world e arr
+    setRect2dBehaviorWorld world e arr
+    pure e
+  where
+    spriteProp = buildProp arr SpriteRender false
+    mayImageIntType::Maybe Int
+    mayImageIntType = do
+      typeProp <- O.lookup "type" spriteProp
+      (fistNumber::Number) <- index (unsafeCoerce typeProp) 0
+      pure $ unsafePartial $ fromJust $ fromNumber fistNumber
+    isSetDefault::Maybe Int -> Boolean
+    isSetDefault Nothing = true
+    isSetDefault (Just v) = isImageTypeDefSize v
+
+addParent::World -> Entity -> Maybe Entity -> Effect Unit
+addParent _ _ Nothing = pure unit
+addParent world e (Just p) = setParent world e p

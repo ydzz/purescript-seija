@@ -223,6 +223,36 @@ exports._setTransformBehavior = function(world) {
   }
 }
 
+exports._addTransparent = function(world) {
+  return function(e) {
+    return function() {
+      seija.g2d.addTransparent(world,e);
+    }
+  }
+}
+
+exports._addSpriteRenderByProp = function(world) {
+  return function(e) {
+    return function(sheet) {
+      return function(spriteName) {
+        return function(prop) {
+          return function() {
+            return seija.g2d.addSpriteRender(world,e,sheet,spriteName,prop.type,prop.color);
+          }
+        }
+      }
+    }
+  }
+}
+
+exports._getSpriteRectInfo = function(world) {
+  return function(sheet) {
+    return function(spriteName) {
+      return seija.g2d.getSpriteRectInfo(world,sheet,spriteName);
+    }
+  }
+}
+
 function chainEvent(event,f) {
   var newEvent = seija.g2d.chainEvent(event,f);
   newEvent.f = f;

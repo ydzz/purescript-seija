@@ -2,11 +2,10 @@ module Seija.FRP where
 
 import Prelude
 
-import Data.Typelevel.Undefined (undefined)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Seija.App (AppReader, askWorld)
-import Seija.Foreign (RawBehavior, RawEvent, World, Entity, _attachBehavior, _getBehaviorValue, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, chainEvent, chainEventEffect, getEvent)
+import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, chainEvent, chainEventEffect, getEvent)
 
 newtype Event a = Event RawEvent
 
@@ -64,6 +63,3 @@ attachFoldBehavior (Event ev) (Behavior b) fn = do
 
 effectBehavior::forall a.Behavior a -> (a -> Effect Unit) -> Effect Unit
 effectBehavior (Behavior b) f = _setBehaviorCallback b f
-
-fucker::String
-fucker = "123"

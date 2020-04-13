@@ -5,12 +5,11 @@ import Color (Color)
 import Color.Scheme.X11 (darkgray)
 import Data.ColorEx (toNumberArray)
 import Data.Default (class Default, default)
-import Data.Either (Either(..))
-import Data.Lens (Prism', lens, prism, prism')
+import Data.Lens (lens)
 import Data.Maybe (Maybe(..))
 import Data.MaybeEx (maybeToList)
 import Data.Monoid ((<>))
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (class Newtype)
 import Data.Profunctor.Strong (class Strong)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
@@ -18,7 +17,6 @@ import Effect (Effect)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object as FO
 import Prelude (Unit, map, ($), (<<<))
-import Unsafe.Coerce (unsafeCoerce)
 
 class ToJsObject a where
     toJsObject::a -> FO.Object Foreign
@@ -172,8 +170,11 @@ foreign import _setRect2dBehavior::World -> Entity -> FO.Object PropValue -> Eff
 
 foreign import _setTransformBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
 
+foreign import _addTransparent::World -> Entity -> Effect Unit
 
+foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Object PropValue -> Effect Unit
 
+foreign import _getSpriteRectInfo::World -> Int -> String -> Array Number
 
 
 

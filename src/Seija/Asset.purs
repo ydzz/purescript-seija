@@ -5,10 +5,11 @@ import Data.Array as A
 import Data.Int (toNumber)
 import Data.Monoid ((<>))
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested (Tuple4, (/\))
 import Data.Vec (vec2)
 import Effect.Class (liftEffect)
 import Partial.Unsafe (unsafePartial)
-import Prelude (class Show, bind, pure, show, ($))
+import Prelude (class Show, bind, pure, show, unit, ($))
 import Seija.App (AppReader, askWorld)
 import Seija.Foreign (World)
 import Seija.Foreign as F
@@ -18,9 +19,9 @@ data Asset2DType = Textute | Json | SpriteSheet | Font
 
 assetTypeToId::Asset2DType -> Int
 assetTypeToId Textute = 1
-assetTypeToId Json = 2
-assetTypeToId SpriteSheet = 3
-assetTypeToId Font = 4
+assetTypeToId Json = 0
+assetTypeToId SpriteSheet = 2
+assetTypeToId Font = 3
 
 instance showAsset2DType :: Show Asset2DType where
    show Textute = "Texture"
@@ -77,3 +78,12 @@ getTextureSizeWorld world (Asset2D asset) = vec2 w h
       arr = F._getTextureSize world asset.assetId
       w = toNumber $ unsafePartial $ A.unsafeIndex arr 0
       h = toNumber $ unsafePartial $ A.unsafeIndex arr 1
+
+getSpirteRectInfo::World -> Asset2D -> String -> Tuple4 Number Number Number Number
+getSpirteRectInfo world (Asset2D asset) spriteName = x /\ y /\ w /\ h /\ unit
+   where 
+    arr = F._getSpriteRectInfo world asset.assetId spriteName
+    x = unsafePartial $ A.unsafeIndex arr 0
+    y = unsafePartial $ A.unsafeIndex arr 1
+    w = unsafePartial $ A.unsafeIndex arr 2
+    h = unsafePartial $ A.unsafeIndex arr 3

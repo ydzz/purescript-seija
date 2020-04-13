@@ -11,13 +11,13 @@ import Data.Vec (vec2, modifyAt)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (error)
-import Effect.Console (log)
+import Effect.Console (errorShow, log)
 import Seija.App (AppReader, startApp, version)
-import Seija.Asset (loadAssetSync, texturePath)
+import Seija.Asset (Asset2D, loadAssetSync, spriteSheetPath, texturePath)
 import Seija.Component as C
-import Seija.Element (image)
+import Seija.Element (image, sprite)
 import Seija.FRP (Behavior, EventType(..), attachFoldBehavior, fetchEvent, newBehavior)
-import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
+import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
 import Seija.Math.Vector (Vector2f)
 import Seija.Simple2D (newEventRoot)
 
@@ -38,9 +38,17 @@ appMain = do
   liftEffect $ log "Enter AppMain"
   root <- newEventRoot
   asset <- loadAssetSync (texturePath "b.jpg")
-  assetid2 <- loadAssetSync (texturePath "a.jpg")
+  sheet <- loadAssetSync (spriteSheetPath "111/material.json")
+  testSprite sheet root
+  liftEffect $ do
+    errorShow sheet
+  pure unit
+
+
+testImage::Asset2D -> Entity -> AppReader Unit
+testImage asset root = do
   let (bSize::Behavior Vector2f) = newBehavior $ vec2 100.0 100.0
-  img <- image assetid2 [C.rSizeB bSize,C.iColor red] (Just root)
+  img <- image asset [C.rSizeB bSize,C.iColor red] (Just root)
   ev <- fetchEvent img Click false
   liftEffect do
     attachFoldBehavior ev bSize (\val ea -> modifyAt d0 (add 1.0) val)
@@ -48,3 +56,9 @@ appMain = do
     --bNum <- foldBehavior "IDLE" evString (\val e -> val <> e)
     --effectBehavior bNum warn
     log "Exit AppMain"
+
+
+testSprite::Asset2D -> Entity -> AppReader Unit
+testSprite asset root = do
+  _ <- sprite asset "button-active" [] (Just root)
+  pure unit
