@@ -164,6 +164,65 @@ exports._getViewPortSize = function(world) {
   }
 }
 
+exports._newBehavior = function(val) {
+  console.error(val);
+  return seija.g2d.newBehavior(val);
+}
+
+exports._attachBehavior = function(ev) {
+  return function(b) {
+    return function() {
+      return seija.g2d.attachBehavior(ev,b);
+    }
+  }
+}
+
+exports._setBehaviorFoldFunc = function(b) {
+  return function(f) {
+    return function() {
+      setBehaviorFoldFunc(b,function(val,ev) {
+        var retVal = f(val)(ev)
+        return retVal;
+      });
+    }
+  }
+}
+
+exports._getBehaviorValue = function(b) {
+  return seija.g2d.getBehaviorValue(b);
+}
+
+exports._setBehaviorCallback = function(b) {
+  return function(f) {
+    return function() {
+      b.callFunc = function(val) {
+        f(val)();
+      }
+      seija.g2d.setBehaviorCallback(b,b.callFunc);
+    }
+  }
+}
+
+exports._setRect2dBehavior = function(world) {
+  return function(e) {
+    return function(b) {
+      return function() {
+        seija.g2d.setRect2dBehavior(world,e,b);
+      }
+    }
+  }
+}
+
+exports._setTransformBehavior = function(world) {
+  return function(e) {
+    return function(b) {
+      return function() {
+        seija.g2d.setTransformBehavior(world,e,b);
+      }
+    }
+  }
+}
+
 function chainEvent(event,f) {
   var newEvent = seija.g2d.chainEvent(event,f);
   newEvent.f = f;
@@ -172,4 +231,9 @@ function chainEvent(event,f) {
   }
   event.childrens.push(newEvent);
   return newEvent;
+}
+
+function setBehaviorFoldFunc(b,f) {
+  b.myfunc = f;
+  seija.g2d.behaviorSetFoldFunc(b,b.myfunc);
 }

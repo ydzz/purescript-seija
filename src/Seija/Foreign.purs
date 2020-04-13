@@ -18,7 +18,6 @@ import Effect (Effect)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object as FO
 import Prelude (Unit, map, ($), (<<<))
-import Seija.Component (PropValue)
 import Unsafe.Coerce (unsafeCoerce)
 
 class ToJsObject a where
@@ -117,6 +116,9 @@ foreign import data App:: Type
 foreign import data World:: Type
 foreign import data Loader:: Type
 foreign import data RawEvent:: Type
+foreign import data RawBehavior:: Type
+foreign import data PropValue ∷ Type
+type Entity = Int
 
 foreign import _newSimple2d::FO.Object Foreign -> Simple2d
 
@@ -155,6 +157,21 @@ foreign import setParent::World -> Int -> Int -> Effect Unit
 foreign import chainEvent::forall a b. RawEvent -> (a -> b) -> RawEvent
 
 foreign import _getViewPortSize::World -> Effect (Array Number)
+
+foreign import _newBehavior::forall a. a -> RawBehavior
+
+foreign import _attachBehavior::RawEvent -> RawBehavior -> Effect Unit
+
+foreign import _setBehaviorFoldFunc::forall a b. RawBehavior -> (a -> b -> a) -> Effect Unit
+
+foreign import _getBehaviorValue::forall a. RawBehavior -> a
+
+foreign import _setBehaviorCallback::forall a. RawBehavior -> (a -> Effect Unit) -> Effect Unit
+
+foreign import _setRect2dBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
+
+foreign import _setTransformBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
+
 
 
 
