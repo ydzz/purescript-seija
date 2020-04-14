@@ -176,6 +176,10 @@ foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Ob
 
 foreign import _getSpriteRectInfo::World -> Int -> String -> Array Number
 
+foreign import _addTextRenderByProp::World -> Entity -> Int -> FO.Object PropValue -> Effect Unit
+
+
+
 
 
 

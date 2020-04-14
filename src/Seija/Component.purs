@@ -149,6 +149,12 @@ imageType = prop SpriteRender false "type"
 imageSlice0Type::Prop
 imageSlice0Type = imageType $ SheetSlice 0
 
+tText::String -> Prop
+tText = prop TextRender false "text"
+
+tColor::Color -> Prop
+tColor = prop TextRender false "color"
+
 
 setBehaviorWorld::ComponentType -> (World -> Entity -> O.Object PropValue -> Effect Unit) -> World -> Entity -> (Array Prop) -> Effect Unit
 setBehaviorWorld ct fn world e props = do

@@ -245,6 +245,19 @@ exports._addSpriteRenderByProp = function(world) {
   }
 }
 
+exports._addTextRenderByProp = function(world) {
+  return function(e) {
+    return function(fontId) {
+      return function(prop) {
+        return function() {
+          console.error(prop.color);
+          return seija.g2d.addTextRender(world,e,fontId,prop.text,prop.color,prop.fontSize,prop.lineMode);
+        }
+      }
+    }
+  }
+}
+
 exports._getSpriteRectInfo = function(world) {
   return function(sheet) {
     return function(spriteName) {

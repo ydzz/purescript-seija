@@ -1,5 +1,5 @@
 module Seija.Element (
-  image,sprite
+  image,sprite,text
 ) where
 
 import Prelude
@@ -16,7 +16,7 @@ import Partial.Unsafe (unsafePartial)
 import Seija.App (AppReader, askWorld)
 import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
 import Seija.Component (ComponentType(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, setRect2dBehaviorWorld, setTransformBehaviorWorld)
-import Seija.Foreign (Entity, World, _addSpriteRenderByProp, _addTransparent, addImageRenderByProp, addRect2DByProp, addTransformByProp, newEntity, setParent)
+import Seija.Foreign (Entity, World, _addSpriteRenderByProp, _addTextRenderByProp, _addTransparent, addImageRenderByProp, addRect2DByProp, addTransformByProp, newEntity, setParent)
 import Unsafe.Coerce (unsafeCoerce)
 
 
@@ -71,6 +71,20 @@ sprite s2d@(Asset2D asset) spriteName arr parent = do
     isSetDefault::Maybe Int -> Boolean
     isSetDefault Nothing = true
     isSetDefault (Just v) = isImageTypeDefSize v
+
+text::Asset2D -> Array Prop -> Maybe Entity -> AppReader Entity
+text s2d@(Asset2D asset) arr parent = do
+ world <- askWorld
+ liftEffect $ do
+    e <- newEntity world
+    _ <- addTransformByProp world e (buildProp arr Transform false)
+    let rectProp =  buildProp arr Rect2D false
+    _ <- addRect2DByProp world e rectProp
+    addParent world e parent
+    _addTransparent world e
+    _addTextRenderByProp world e asset.assetId $ buildProp arr TextRender false
+    pure e
+
 
 addParent::World -> Entity -> Maybe Entity -> Effect Unit
 addParent _ _ Nothing = pure unit

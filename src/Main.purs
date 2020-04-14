@@ -2,20 +2,21 @@ module Main where
 
 import Prelude
 
+import Color (white)
 import Color.Scheme.X11 (red, whitesmoke)
 import Data.Default (default)
 import Data.Lens ((.~))
 import Data.Maybe (Maybe(..))
 import Data.Typelevel.Num (d0)
-import Data.Vec (vec2, modifyAt)
+import Data.Vec (modifyAt, vec2, vec3)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (error)
 import Effect.Console (errorShow, log)
 import Seija.App (AppReader, startApp, version)
-import Seija.Asset (Asset2D, loadAssetSync, spriteSheetPath, texturePath)
+import Seija.Asset (Asset2D, fontPath, loadAssetSync, spriteSheetPath, texturePath)
 import Seija.Component as C
-import Seija.Element (image, sprite)
+import Seija.Element (image, sprite, text)
 import Seija.FRP (Behavior, EventType(..), attachFoldBehavior, fetchEvent, newBehavior)
 import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
 import Seija.Math.Vector (Vector2f)
@@ -39,7 +40,9 @@ appMain = do
   root <- newEventRoot
   asset <- loadAssetSync (texturePath "b.jpg")
   sheet <- loadAssetSync (spriteSheetPath "111/material.json")
-  testSprite sheet root
+  font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
+  spr <- testSprite sheet root
+  _ <- text font [C.tPos $ vec3 (-13.0) (-8.0) 0.0,C.rSize $ vec2 100.0 25.0,C.tText "确定",C.tColor white] (Just spr)
   liftEffect $ do
     errorShow sheet
   pure unit
@@ -58,7 +61,7 @@ testImage asset root = do
     log "Exit AppMain"
 
 
-testSprite::Asset2D -> Entity -> AppReader Unit
+testSprite::Asset2D -> Entity -> AppReader Entity
 testSprite asset root = do
-  _ <- sprite asset "button-active" [] (Just root)
-  pure unit
+  spr <- sprite asset "button-active" [C.imageSlice0Type,C.rSize $ vec2 80.0 30.0] (Just root)
+  pure spr
