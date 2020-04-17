@@ -10,4 +10,5 @@
 /.psa*
 /.spago
 js-app
+js-app.exe
 index.js

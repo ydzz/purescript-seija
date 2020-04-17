@@ -23,7 +23,9 @@ import Seija.Math.Vector (Vector2f)
 import Seija.Simple2D (newEventRoot)
 
 iRES_PATH :: String
-iRES_PATH = "/home/yangdao/Project/Rust/seija/examples/first/res/"
+iRES_PATH = "./res/"
+
+
 
 main :: Effect Unit
 main = do
@@ -39,12 +41,13 @@ appMain = do
   liftEffect $ log "Enter AppMain"
   root <- newEventRoot
   asset <- loadAssetSync (texturePath "b.jpg")
-  sheet <- loadAssetSync (spriteSheetPath "111/material.json")
+  sheet <- loadAssetSync (spriteSheetPath "material.json")
+
   font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
   spr <- testSprite sheet root
   _ <- text font [C.tPos $ vec3 (-13.0) (-8.0) 0.0,C.rSize $ vec2 100.0 25.0,C.tText "确定",C.tColor white] (Just spr)
   liftEffect $ do
-    errorShow sheet
+    errorShow font
   pure unit
 
 
