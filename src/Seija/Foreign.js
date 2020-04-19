@@ -165,7 +165,6 @@ exports._getViewPortSize = function(world) {
 }
 
 exports._newBehavior = function(val) {
-  console.error(val);
   return seija.g2d.newBehavior(val);
 }
 
@@ -223,6 +222,16 @@ exports._setTransformBehavior = function(world) {
   }
 }
 
+exports._setSpriteRenderBehavior = function(world) {
+  return function(e) {
+    return function(b) {
+      return function() {
+        seija.g2d.setSpriteRenderBehavior(world,e,b);
+      }
+    }
+  }
+}
+
 exports._addTransparent = function(world) {
   return function(e) {
     return function() {
@@ -250,7 +259,6 @@ exports._addTextRenderByProp = function(world) {
     return function(fontId) {
       return function(prop) {
         return function() {
-          console.error(prop.color);
           return seija.g2d.addTextRender(world,e,fontId,prop.text,prop.color,prop.fontSize,prop.lineMode);
         }
       }
@@ -266,6 +274,12 @@ exports._getSpriteRectInfo = function(world) {
   }
 }
 
+exports._mergeEvent = function(eventArray) {
+  return function() {
+    return mergeEvent(eventArray);
+  }
+}
+
 function chainEvent(event,f) {
   var newEvent = seija.g2d.chainEvent(event,f);
   newEvent.f = f;
@@ -273,6 +287,17 @@ function chainEvent(event,f) {
       event.childrens = [];
   }
   event.childrens.push(newEvent);
+  return newEvent;
+}
+
+function mergeEvent(eventArray) {
+  var newEvent = seija.g2d.mergeEvent(eventArray);
+  for(var i = 0; i < eventArray.length;i++) {
+    if (eventArray[i].childrens == undefined) {
+      eventArray[i].childrens = [];
+    } 
+    eventArray[i].childrens.push(newEvent);
+  }
   return newEvent;
 }
 

@@ -13,18 +13,18 @@ import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (error)
 import Effect.Console (errorShow, log)
+import Effect.Ref as Ref
 import Seija.App (AppReader, startApp, version)
 import Seija.Asset (Asset2D, fontPath, loadAssetSync, spriteSheetPath, texturePath)
 import Seija.Component as C
-import Seija.Element (image, sprite, text)
-import Seija.FRP (Behavior, EventType(..), attachFoldBehavior, fetchEvent, newBehavior)
+import Seija.Element (image, spriteB, text)
+import Seija.FRP (Behavior, Event, EventType(..), attachFoldBehavior, fetchEvent, mergeEvent, newBehavior)
 import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
 import Seija.Math.Vector (Vector2f)
 import Seija.Simple2D (newEventRoot)
 
 iRES_PATH :: String
 iRES_PATH = "./res/"
-
 
 
 main :: Effect Unit
@@ -38,7 +38,6 @@ main = do
 
 appMain::AppReader Unit
 appMain = do
-  liftEffect $ log "Enter AppMain"
   root <- newEventRoot
   asset <- loadAssetSync (texturePath "b.jpg")
   sheet <- loadAssetSync (spriteSheetPath "material.json")
@@ -54,7 +53,7 @@ appMain = do
 testImage::Asset2D -> Entity -> AppReader Unit
 testImage asset root = do
   let (bSize::Behavior Vector2f) = newBehavior $ vec2 100.0 100.0
-  img <- image asset [C.rSizeB bSize,C.iColor red] (Just root)
+  img <- image asset [C.rSizeB bSize,C.cColor red] (Just root)
   ev <- fetchEvent img Click false
   liftEffect do
     attachFoldBehavior ev bSize (\val ea -> modifyAt d0 (add 1.0) val)
@@ -66,5 +65,12 @@ testImage asset root = do
 
 testSprite::Asset2D -> Entity -> AppReader Entity
 testSprite asset root = do
-  spr <- sprite asset "button-active" [C.imageSlice0Type,C.rSize $ vec2 80.0 30.0] (Just root)
-  pure spr
+  let bSpriteName = newBehavior "button"
+  spr <- spriteB asset bSpriteName [C.rSize $ vec2 80.0 30.0,C.imageSlice0Type] (Just root)
+  evDown::Event Int <- fetchEvent spr TouchStart false
+  evUp::Event Int   <- fetchEvent spr TouchEnd false
+  liftEffect do
+    v <- Ref.new $ newBehavior "Fucker"
+    mEv <- mergeEvent [evDown $> "button-active",evUp $> "button"]
+    attachFoldBehavior mEv bSpriteName (\a ea -> ea)
+    pure spr

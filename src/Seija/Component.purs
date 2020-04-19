@@ -6,22 +6,33 @@ import Color (Color)
 import Data.Array (filter, length)
 import Data.ColorEx (toNumberArray)
 import Data.Int (toNumber)
+import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (D2, D3)
 import Data.Vec (Vec, toArray)
 import Effect (Effect)
 import Foreign.Object as O
-import Seija.FRP (Behavior)
-import Seija.Foreign (Entity, PropValue, World, _setRect2dBehavior, _setTransformBehavior)
+import Seija.FRP (Behavior(..))
+import Seija.Foreign (Entity, PropValue, World, _getBehaviorValue, _setRect2dBehavior, _setSpriteRenderBehavior, _setTransformBehavior)
 import Seija.Math.Vector (Vector3f, Vector2f)
 import Unsafe.Coerce (unsafeCoerce)
 
-data ComponentType = Transform | Rect2D | ImageRender | SpriteRender | CABEventRoot | TextRender 
+data ComponentType = Transform | Rect2D | ImageRender | SpriteRender | CABEventRoot | TextRender | Common
 derive instance eqComponentType :: Eq ComponentType
 
 
 data ImageType = Simple | Slice Number Number Number Number | SheetSlice Int | Filled ImageFilledType Number | Tiled
 data ImageFilledType = HorizontalLeft | HorizontalRight | VerticalTop | VerticalBottom
+
+data POrB a = P a | B (Behavior a)
+
+valPOrB:: forall a.POrB a -> a
+valPOrB (P a) = a
+valPOrB (B (Behavior b)) = _getBehaviorValue b
+
+propPOrB::forall a.POrB a -> (Behavior a -> Prop) -> Maybe Prop
+propPOrB (P _) _ = Nothing 
+propPOrB (B b) f = Just $ f b 
 
 isImageTypeDefSize::Int -> Boolean
 isImageTypeDefSize 0 = true
@@ -113,7 +124,7 @@ prop com b key a = Prop com b key (toPropValue a)
 buildProp::(Array Prop) -> ComponentType -> Boolean -> O.Object PropValue
 buildProp arr cType isBehavior = O.fromFoldable $ map (\(Prop _ _ k v) -> k /\ v ) fList
  where
-   fList = filter (\(Prop ct isb _ _) -> (ct == cType) && (isBehavior == isb)) arr
+   fList = filter (\(Prop ct isb _ _) -> (ct == cType || ct ==  Common) && (isBehavior == isb)) arr
 
 tPos:: Vector3f -> Prop
 tPos = prop Transform false "pos"
@@ -137,11 +148,11 @@ rSizeB = prop  Rect2D true "size"
 rAnchor::Vector2f -> Prop
 rAnchor = prop Rect2D false "anchor"
 
-iColor::Color -> Prop
-iColor = prop ImageRender false "color"
+cColor::Color -> Prop
+cColor = prop Common false "color"
 
-iColorB::Behavior Color -> Prop
-iColorB = prop ImageRender true "color"
+cColorB::Behavior Color -> Prop
+cColorB = prop Common true "color"
 
 imageType::ImageType -> Prop
 imageType = prop SpriteRender false "type"
@@ -155,6 +166,9 @@ tText = prop TextRender false "text"
 tColor::Color -> Prop
 tColor = prop TextRender false "color"
 
+spriteNameB::Behavior String -> Prop
+spriteNameB = prop SpriteRender true "spriteName"
+
 
 setBehaviorWorld::ComponentType -> (World -> Entity -> O.Object PropValue -> Effect Unit) -> World -> Entity -> (Array Prop) -> Effect Unit
 setBehaviorWorld ct fn world e props = do
@@ -167,3 +181,6 @@ setTransformBehaviorWorld = setBehaviorWorld Transform _setTransformBehavior
 
 setRect2dBehaviorWorld::World -> Entity -> (Array Prop) -> Effect Unit
 setRect2dBehaviorWorld = setBehaviorWorld Rect2D _setRect2dBehavior
+
+setSpriteBehaviorWorld::World -> Entity -> (Array Prop) -> Effect Unit
+setSpriteBehaviorWorld = setBehaviorWorld SpriteRender _setSpriteRenderBehavior

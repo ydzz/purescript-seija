@@ -5,7 +5,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Seija.App (AppReader, askWorld)
-import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, chainEvent, chainEventEffect, getEvent)
+import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _mergeEvent, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, chainEvent, chainEventEffect, getEvent)
 
 newtype Event a = Event RawEvent
 
@@ -19,9 +19,9 @@ numEventType Click = 2
 instance functorEvent :: Functor Event where
   map f (Event ev) = Event $ chainEvent ev f
 
-fetchEventWorld::forall a. World -> Entity -> Boolean -> Effect (Event a)
-fetchEventWorld world eid isCapture = do
-  ev <- getEvent world eid 0 isCapture
+fetchEventWorld::forall a. World -> Entity -> EventType -> Boolean -> Effect (Event a)
+fetchEventWorld world eid typ isCapture = do
+  ev <- getEvent world eid (numEventType typ) isCapture
   pure $ Event ev
 
 fetchEvent::forall a.Entity -> EventType -> Boolean -> AppReader (Event a)
@@ -63,3 +63,9 @@ attachFoldBehavior (Event ev) (Behavior b) fn = do
 
 effectBehavior::forall a.Behavior a -> (a -> Effect Unit) -> Effect Unit
 effectBehavior (Behavior b) f = _setBehaviorCallback b f
+
+mergeEvent::forall a.Array (Event a) -> Effect (Event a)
+mergeEvent events = do
+  let rawEvents = map (\(Event re) -> re) events
+  ev <- _mergeEvent rawEvents
+  pure $ Event ev
