@@ -9,12 +9,15 @@ import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _me
 
 newtype Event a = Event RawEvent
 
-data EventType = TouchStart | TouchEnd | Click
+data EventType = TouchStart | TouchEnd | Click | MouseMove | MouseEnter | MouseLeave
 
 numEventType :: EventType -> Int
 numEventType TouchStart = 0
-numEventType TouchEnd = 1
-numEventType Click = 2
+numEventType TouchEnd   = 1
+numEventType Click      = 2
+numEventType MouseMove  = 3
+numEventType MouseEnter = 4
+numEventType MouseLeave = 5
 
 instance functorEvent :: Functor Event where
   map f (Event ev) = Event $ chainEvent ev f

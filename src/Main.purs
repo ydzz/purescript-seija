@@ -44,7 +44,7 @@ appMain = do
 
   font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
   spr <- testSprite sheet root
-  _ <- text font [C.tPos $ vec3 (-13.0) (-8.0) 0.0,C.rSize $ vec2 100.0 25.0,C.tText "确定",C.tColor white] (Just spr)
+  _ <- text font [C.rSize $ vec2 100.0 25.0,C.tText "确定",C.tColor white] (Just spr)
   liftEffect $ do
     errorShow font
   pure unit
@@ -69,8 +69,10 @@ testSprite asset root = do
   spr <- spriteB asset bSpriteName [C.rSize $ vec2 80.0 30.0,C.imageSlice0Type] (Just root)
   evDown::Event Int <- fetchEvent spr TouchStart false
   evUp::Event Int   <- fetchEvent spr TouchEnd false
+  evEnter::Event Int   <- fetchEvent spr MouseEnter false
+  evLeave::Event Int   <- fetchEvent spr MouseLeave false
   liftEffect do
     v <- Ref.new $ newBehavior "Fucker"
-    mEv <- mergeEvent [evDown $> "button-active",evUp $> "button"]
+    mEv <- mergeEvent [evDown $> "button-active",evUp $> "button",evEnter $> "button-hover",evLeave $> "button"]
     attachFoldBehavior mEv bSpriteName (\a ea -> ea)
     pure spr
