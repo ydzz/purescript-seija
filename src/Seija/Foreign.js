@@ -232,6 +232,16 @@ exports._setSpriteRenderBehavior = function(world) {
   }
 }
 
+exports._setTextRenderBehavior = function(world) {
+  return function(e) {
+    return function(p) {
+      return function() {
+        seija.g2d.setTextRenderBehavior(world,e,p);
+      }
+    }
+  }
+}
+
 exports._addTransparent = function(world) {
   return function(e) {
     return function() {

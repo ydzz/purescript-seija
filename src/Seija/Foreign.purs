@@ -172,6 +172,8 @@ foreign import _setTransformBehavior::World -> Entity -> FO.Object PropValue -> 
 
 foreign import _setSpriteRenderBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
 
+foreign import _setTextRenderBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
+
 foreign import _addTransparent::World -> Entity -> Effect Unit
 
 foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Object PropValue -> Effect Unit

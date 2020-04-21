@@ -16,7 +16,7 @@ import Foreign.Object as O
 import Partial.Unsafe (unsafePartial)
 import Seija.App (AppReader, askWorld)
 import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
-import Seija.Component (ComponentType(..), POrB(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, propPOrB, setRect2dBehaviorWorld, setSpriteBehaviorWorld, setTransformBehaviorWorld, spriteNameB, valPOrB)
+import Seija.Component (ComponentType(..), POrB(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, propPOrB, setRect2dBehaviorWorld, setSpriteBehaviorWorld, setTextBehaviorWorld, setTransformBehaviorWorld, spriteNameB, valPOrB)
 import Seija.FRP (Behavior)
 import Seija.Foreign as F
 import Unsafe.Coerce (unsafeCoerce)
@@ -94,6 +94,10 @@ text s2d@(Asset2D asset) arr parent = do
     addParent world e parent
     F._addTransparent world e
     F._addTextRenderByProp world e asset.assetId $ buildProp arr TextRender false
+     --set behavior
+    setTransformBehaviorWorld world e arr
+    setRect2dBehaviorWorld world e arr
+    setTextBehaviorWorld  world e arr
     pure e
 
 
