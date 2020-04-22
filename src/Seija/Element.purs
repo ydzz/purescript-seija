@@ -1,5 +1,5 @@
 module Seija.Element (
-  image,sprite,text,spriteB,sprite_
+  image,sprite,text,spriteB,sprite_,emptyElement
 ) where
 
 import Prelude
@@ -104,3 +104,16 @@ text s2d@(Asset2D asset) arr parent = do
 addParent::F.World -> F.Entity -> Maybe F.Entity -> Effect Unit
 addParent _ _ Nothing = pure unit
 addParent world e (Just p) = F.setParent world e p
+
+
+emptyElement::Array Prop -> Maybe F.Entity -> AppReader F.Entity
+emptyElement props parent = do
+   world <- askWorld
+   liftEffect do
+    e <- F.newEntity world
+    _ <- F.addTransformByProp world e $ buildProp props Transform false
+    _ <- F.addRect2DByProp world e $ buildProp props Rect2D false
+    setTransformBehaviorWorld world e props
+    setRect2dBehaviorWorld world e props
+    addParent world e parent
+    pure e

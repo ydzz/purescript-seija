@@ -5,10 +5,9 @@ import Prelude
 import Color (white)
 import Color.Scheme.X11 (red, whitesmoke)
 import Data.Default (default)
-import Data.Int (fromString)
 import Data.Lens ((.~))
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple(..))
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (d0)
 import Data.Vec (modifyAt, vec2, vec3)
@@ -21,10 +20,11 @@ import Seija.App (AppReader, startApp, version)
 import Seija.Asset (Asset2D, fontPath, loadAssetSync, spriteSheetPath, texturePath)
 import Seija.Component as C
 import Seija.Element (image, spriteB, text)
-import Seija.FRP (Behavior, Event, EventType(..), attachFoldBehavior, effectEvent, fetchEvent, foldBehavior, holdBehavior, mergeEvent, newBehavior, tagBehavior, tagMapBehavior, unsafeBehaviorValue)
+import Seija.FRP (Behavior, Event, EventType(..), attachFoldBehavior, fetchEvent, foldBehavior, mergeEvent, newBehavior, tagMapBehavior)
 import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
 import Seija.Math.Vector (Vector2f)
 import Seija.Simple2D (newEventRoot)
+import Seija.UI.Buildin.Controls (button)
 
 iRES_PATH :: String
 iRES_PATH = "./res/"
@@ -45,13 +45,18 @@ appMain = do
   asset <- loadAssetSync (texturePath "b.jpg")
   sheet <- loadAssetSync (spriteSheetPath "material.json")
   font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
+  elBtn <- button sheet font "-" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 (-100.0) 0.0 0.0] (Just root)
+  elBtn2 <- button sheet font "+" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 100.0 0.0 0.0] (Just root)
+  pure unit
+
+
+test0::Asset2D -> Asset2D -> Entity -> AppReader Unit
+test0 sheet font root = do
   (eClick /\ spr) <- testSprite sheet root
   bNum::Behavior Int <- liftEffect $ foldBehavior 0 (eClick $> 1) (\a ea -> ea + a)
   bText::Behavior String <- liftEffect $ tagMapBehavior bNum eClick show
   _ <- text font [C.rSize $ vec2 100.0 25.0,C.tTextB bText,C.tColor white] (Just spr)
-  liftEffect $ do
-    errorShow font
-  pure unit
+  liftEffect $ errorShow font
 
 testSprite::Asset2D -> Entity -> AppReader (Tuple (Event Int) Entity)
 testSprite asset root = do
