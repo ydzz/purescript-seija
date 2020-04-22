@@ -5,7 +5,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Seija.App (AppReader, askWorld)
-import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _mergeEvent, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, chainEvent, chainEventEffect, getEvent)
+import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _getBehaviorValue, _mapBehavior, _mergeEvent, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, _tagBehavior, chainEvent, chainEventEffect, getEvent)
 
 newtype Event a = Event RawEvent
 
@@ -36,11 +36,28 @@ fetchEvent eid typ isCapture =  do
 effectEvent::forall a. Event a -> (a -> Effect Unit) -> Effect Unit
 effectEvent (Event ev) f = chainEventEffect ev f
 
+mergeEvent::forall a.Array (Event a) -> Effect (Event a)
+mergeEvent events = do
+  let rawEvents = map (\(Event re) -> re) events
+  ev <- _mergeEvent rawEvents
+  pure $ Event ev
+
+tagBehavior::forall a b. Behavior a -> Event b -> Effect (Event a)
+tagBehavior (Behavior b) (Event e) = do
+  newEv <- _tagBehavior b e
+  pure $ Event newEv
+
 
 newtype Behavior a = Behavior RawBehavior
 
+instance functorBehavior :: Functor Behavior where
+  map f (Behavior b) = Behavior $ _mapBehavior b f
+
 newBehavior::forall a. a -> Behavior a
 newBehavior val = Behavior $ _newBehavior val
+
+unsafeBehaviorValue::forall a.  Behavior a -> a
+unsafeBehaviorValue (Behavior b) = _getBehaviorValue b
 
 attachBehavior::forall a. Event a -> Behavior a -> Effect Unit
 attachBehavior (Event ev) (Behavior b) = _attachBehavior ev b
@@ -62,13 +79,11 @@ attachFoldBehavior::forall ea a. Event ea -> Behavior a -> (a -> ea -> a) -> Eff
 attachFoldBehavior (Event ev) (Behavior b) fn = do
   _attachBehavior ev b
   _setBehaviorFoldFunc b fn
-  
 
 effectBehavior::forall a.Behavior a -> (a -> Effect Unit) -> Effect Unit
 effectBehavior (Behavior b) f = _setBehaviorCallback b f
 
-mergeEvent::forall a.Array (Event a) -> Effect (Event a)
-mergeEvent events = do
-  let rawEvents = map (\(Event re) -> re) events
-  ev <- _mergeEvent rawEvents
-  pure $ Event ev
+tagMapBehavior::forall ba bb e. Behavior ba -> Event e -> (ba -> bb) -> Effect (Behavior bb)
+tagMapBehavior b e f = do
+  ev::Event ba <- tagBehavior b e
+  foldBehavior (f $ (unsafeBehaviorValue b)) ev (const f)

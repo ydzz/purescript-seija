@@ -184,6 +184,10 @@ foreign import _addTextRenderByProp::World -> Entity -> Int -> FO.Object PropVal
 
 foreign import _mergeEvent::Array RawEvent -> Effect RawEvent
 
+foreign import _mapBehavior::forall a b. RawBehavior -> (a -> b) -> RawBehavior
+
+foreign import _tagBehavior::RawBehavior -> RawEvent -> Effect RawEvent
+
 
 
 

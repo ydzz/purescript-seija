@@ -290,6 +290,29 @@ exports._mergeEvent = function(eventArray) {
   }
 }
 
+exports._mapBehavior = function(behavior) {
+  return function(fn) {
+    return seija.g2d.mapBehavior(behavior,fn);
+  }
+}
+
+exports._tagBehavior = function(behavior) {
+  return function(event) {
+    return function() {
+      return tagBehavior(behavior,event);
+    }
+  }
+}
+
+function tagBehavior(b,ev) {
+  var te = seija.g2d.tagBehavior(b,ev);
+  if(ev.childrens == undefined) {
+    ev.childrens = [];
+  }
+  ev.childrens.push(te);
+  return te;
+}
+
 function chainEvent(event,f) {
   var newEvent = seija.g2d.chainEvent(event,f);
   newEvent.f = f;

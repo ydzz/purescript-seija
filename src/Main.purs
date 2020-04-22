@@ -21,7 +21,7 @@ import Seija.App (AppReader, startApp, version)
 import Seija.Asset (Asset2D, fontPath, loadAssetSync, spriteSheetPath, texturePath)
 import Seija.Component as C
 import Seija.Element (image, spriteB, text)
-import Seija.FRP (Behavior, Event, EventType(..), attachFoldBehavior, fetchEvent, foldBehavior, holdBehavior, mergeEvent, newBehavior)
+import Seija.FRP (Behavior, Event, EventType(..), attachFoldBehavior, effectEvent, fetchEvent, foldBehavior, holdBehavior, mergeEvent, newBehavior, tagBehavior, tagMapBehavior, unsafeBehaviorValue)
 import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
 import Seija.Math.Vector (Vector2f)
 import Seija.Simple2D (newEventRoot)
@@ -46,7 +46,8 @@ appMain = do
   sheet <- loadAssetSync (spriteSheetPath "material.json")
   font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
   (eClick /\ spr) <- testSprite sheet root
-  bText <- liftEffect $ foldBehavior "0" (eClick $> 1) (\a ea -> fromMaybe "0" $ map (\num -> show $ num + ea) (fromString a) )
+  bNum::Behavior Int <- liftEffect $ foldBehavior 0 (eClick $> 1) (\a ea -> ea + a)
+  bText::Behavior String <- liftEffect $ tagMapBehavior bNum eClick show
   _ <- text font [C.rSize $ vec2 100.0 25.0,C.tTextB bText,C.tColor white] (Just spr)
   liftEffect $ do
     errorShow font
