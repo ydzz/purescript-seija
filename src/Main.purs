@@ -24,7 +24,7 @@ import Seija.Math.Vector (Vector2f)
 import Seija.Simple2D (newEventRoot)
 
 iRES_PATH :: String
-iRES_PATH = "./res/"
+iRES_PATH = "./res/2"
 
 main :: Effect Unit
 main = do
