@@ -1,5 +1,5 @@
 module Seija.Element (
-  image,sprite,text,spriteB,sprite_
+  image,sprite,text,spriteB,sprite_,emptyElement
 ) where
 
 import Prelude
@@ -16,7 +16,7 @@ import Foreign.Object as O
 import Partial.Unsafe (unsafePartial)
 import Seija.App (AppReader, askWorld)
 import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
-import Seija.Component (ComponentType(..), POrB(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, propPOrB, setRect2dBehaviorWorld, setSpriteBehaviorWorld, setTransformBehaviorWorld, spriteNameB, valPOrB)
+import Seija.Component (ComponentType(..), POrB(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, propPOrB, setRect2dBehaviorWorld, setSpriteBehaviorWorld, setTextBehaviorWorld, setTransformBehaviorWorld, spriteNameB, valPOrB)
 import Seija.FRP (Behavior)
 import Seija.Foreign as F
 import Unsafe.Coerce (unsafeCoerce)
@@ -94,9 +94,26 @@ text s2d@(Asset2D asset) arr parent = do
     addParent world e parent
     F._addTransparent world e
     F._addTextRenderByProp world e asset.assetId $ buildProp arr TextRender false
+     --set behavior
+    setTransformBehaviorWorld world e arr
+    setRect2dBehaviorWorld world e arr
+    setTextBehaviorWorld  world e arr
     pure e
 
 
 addParent::F.World -> F.Entity -> Maybe F.Entity -> Effect Unit
 addParent _ _ Nothing = pure unit
 addParent world e (Just p) = F.setParent world e p
+
+
+emptyElement::Array Prop -> Maybe F.Entity -> AppReader F.Entity
+emptyElement props parent = do
+   world <- askWorld
+   liftEffect do
+    e <- F.newEntity world
+    _ <- F.addTransformByProp world e $ buildProp props Transform false
+    _ <- F.addRect2DByProp world e $ buildProp props Rect2D false
+    setTransformBehaviorWorld world e props
+    setRect2dBehaviorWorld world e props
+    addParent world e parent
+    pure e

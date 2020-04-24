@@ -232,6 +232,16 @@ exports._setSpriteRenderBehavior = function(world) {
   }
 }
 
+exports._setTextRenderBehavior = function(world) {
+  return function(e) {
+    return function(p) {
+      return function() {
+        seija.g2d.setTextRenderBehavior(world,e,p);
+      }
+    }
+  }
+}
+
 exports._addTransparent = function(world) {
   return function(e) {
     return function() {
@@ -278,6 +288,29 @@ exports._mergeEvent = function(eventArray) {
   return function() {
     return mergeEvent(eventArray);
   }
+}
+
+exports._mapBehavior = function(behavior) {
+  return function(fn) {
+    return seija.g2d.mapBehavior(behavior,fn);
+  }
+}
+
+exports._tagBehavior = function(behavior) {
+  return function(event) {
+    return function() {
+      return tagBehavior(behavior,event);
+    }
+  }
+}
+
+function tagBehavior(b,ev) {
+  var te = seija.g2d.tagBehavior(b,ev);
+  if(ev.childrens == undefined) {
+    ev.childrens = [];
+  }
+  ev.childrens.push(te);
+  return te;
 }
 
 function chainEvent(event,f) {
