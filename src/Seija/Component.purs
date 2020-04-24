@@ -13,7 +13,7 @@ import Data.Vec (Vec, toArray)
 import Effect (Effect)
 import Foreign.Object as O
 import Seija.FRP (Behavior(..))
-import Seija.Foreign (Entity, PropValue, World, _getBehaviorValue, _setRect2dBehavior, _setSpriteRenderBehavior, _setTextRenderBehavior, _setTransformBehavior)
+import Seija.Foreign (Entity, PropValue, World, _getBehaviorValue, _setRect2dBehavior, _setSpriteRenderBehavior, _setTransformBehavior)
 import Seija.Math.Vector (Vector3f, Vector2f)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -163,9 +163,6 @@ imageSlice0Type = imageType $ SheetSlice 0
 tText::String -> Prop
 tText = prop TextRender false "text"
 
-tTextB::Behavior String -> Prop
-tTextB = prop TextRender true "text"
-
 tColor::Color -> Prop
 tColor = prop TextRender false "color"
 
@@ -187,6 +184,3 @@ setRect2dBehaviorWorld = setBehaviorWorld Rect2D _setRect2dBehavior
 
 setSpriteBehaviorWorld::World -> Entity -> (Array Prop) -> Effect Unit
 setSpriteBehaviorWorld = setBehaviorWorld SpriteRender _setSpriteRenderBehavior
-
-setTextBehaviorWorld::World -> Entity -> (Array Prop) -> Effect Unit
-setTextBehaviorWorld = setBehaviorWorld TextRender _setTextRenderBehavior

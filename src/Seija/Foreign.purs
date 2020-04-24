@@ -172,8 +172,6 @@ foreign import _setTransformBehavior::World -> Entity -> FO.Object PropValue -> 
 
 foreign import _setSpriteRenderBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
 
-foreign import _setTextRenderBehavior::World -> Entity -> FO.Object PropValue -> Effect Unit
-
 foreign import _addTransparent::World -> Entity -> Effect Unit
 
 foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Object PropValue -> Effect Unit
@@ -183,10 +181,6 @@ foreign import _getSpriteRectInfo::World -> Int -> String -> Array Number
 foreign import _addTextRenderByProp::World -> Entity -> Int -> FO.Object PropValue -> Effect Unit
 
 foreign import _mergeEvent::Array RawEvent -> Effect RawEvent
-
-foreign import _mapBehavior::forall a b. RawBehavior -> (a -> b) -> RawBehavior
-
-foreign import _tagBehavior::RawBehavior -> RawEvent -> Effect RawEvent
 
 
 
