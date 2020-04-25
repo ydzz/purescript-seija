@@ -2,11 +2,11 @@ module Seija.App where
 
 import Prelude
 
-import Control.Monad.Reader (ReaderT, ask, runReaderT)
+import Control.Monad.Reader (class MonadAsk, class MonadTrans, ReaderT(..), ask, lift, runReaderT)
 import Data.Maybe (Maybe)
 import Effect (Effect)
-import Effect.Class.Console (log, logShow)
-import Seija.Foreign (AppConfig(..), Loader, Simple2dConfig, World, appVersion, fetchLoader, loadAssetSync, newApp, newSimple2d, runApp)
+import Effect.Class (class MonadEffect, liftEffect)
+import Seija.Foreign (AppConfig(..), Loader, Simple2dConfig, World, appVersion, fetchLoader, newApp, newSimple2d, runApp)
 
 version::String
 version = appVersion
@@ -16,26 +16,72 @@ type AppHandler = {
     loader:: Loader
 }
 
-type AppReader = ReaderT AppHandler Effect
+newtype GameEnv a = GameEnv {
+    appHandler::AppHandler,
+    env::a
+}
+derive instance functorGameEnv ::Functor GameEnv
+instance applyGameEnv:: Apply GameEnv where
+    apply (GameEnv f) (GameEnv fa)  = GameEnv {
+        appHandler:fa.appHandler,
+        env:f.env  fa.env
+    }
 
+newtype GameM r m a = GameM (ReaderT (GameEnv r) m a)
 
+derive instance functorGameM ::(Monad m) => Functor (GameM r m)
+instance applyGameM::(Monad m) => Apply (GameM r m) where
+    apply (GameM ma) (GameM mb) = GameM (ma <*> mb)
 
-startApp::Simple2dConfig -> AppReader Unit -> Maybe String -> Effect Unit
-startApp s2dcfg start mayPath = do
+instance applicativeGameM :: Monad m => Applicative (GameM r m) where
+    pure = GameM <<< ReaderT <<< const <<< pure
+
+instance bindGameM :: Monad m => Bind (GameM r m) where
+  bind (GameM ma) f = GameM $ ma >>= (\a -> let (GameM mb) = f a in mb)
+
+instance monadGameM :: Monad m => Monad (GameM r m)
+
+instance monadTransGameM :: MonadTrans (GameM r) where
+  lift = GameM <<< ReaderT <<< const
+
+instance monadEffectGameM :: (MonadEffect m) => MonadEffect (GameM r m) where
+  liftEffect = lift <<< liftEffect
+
+instance monadAskGameM :: Monad m => MonadAsk (GameEnv r) (GameM r m) where
+  ask = GameM $ ReaderT $ pure
+    
+instance monadAppHandler::(Monad m) => MonadAppHandler  (GameM r m) where
+    askAppHandler = do
+       (GameEnv env) <- ask
+       pure env.appHandler
+
+class IGame a where
+    resPath::a -> Maybe String
+
+class (Monad m) <= MonadAppHandler m where
+    askAppHandler::m AppHandler
+
+class (MonadEffect m,MonadAppHandler m) <= MonadApp m
+instance monadAppGameM ::(MonadEffect m) => MonadApp (GameM r m)
+
+startApp::forall a.(IGame a) => Simple2dConfig -> a -> GameM a Effect Unit -> Effect Unit
+startApp s2dCfg game main = do
     let appConfig = AppConfig {
-                                onStart:  onStartApp start,
+                                onStart:  onStartApp main game,
                                 onUpdate: onUpdate,
                                 onQuit:   onQuit,
-                                resPath:mayPath
-                            }
-    let s2d = newSimple2d s2dcfg
+                                resPath:  (resPath game)
+                              }
+    let s2d = newSimple2d s2dCfg
     let app = newApp s2d appConfig
     runApp app
 
-onStartApp::AppReader Unit -> World -> Effect Unit
-onStartApp r w = do
-    loader <- fetchLoader w
-    runReaderT r {world : w,loader}
+onStartApp::forall  r. GameM r Effect Unit -> r -> World -> Effect Unit
+onStartApp (GameM reader) game world = do
+    loader <- fetchLoader world
+    let appHandler = {world,loader}
+    let env = GameEnv {appHandler,env: game }
+    runReaderT reader env
 
 onUpdate::World -> Effect Boolean
 onUpdate world = do
@@ -45,7 +91,7 @@ onQuit::World -> Effect Unit
 onQuit world = do
     pure unit
 
-askWorld::AppReader World
+askWorld::forall m.MonadApp m => m World
 askWorld = do
-    handle <- ask
+    handle <- askAppHandler
     pure handle.world

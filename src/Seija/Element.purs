@@ -14,7 +14,7 @@ import Effect (Effect)
 import Effect.Class (liftEffect)
 import Foreign.Object as O
 import Partial.Unsafe (unsafePartial)
-import Seija.App (AppReader, askWorld)
+import Seija.App (class MonadApp, askWorld)
 import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
 import Seija.Component (ComponentType(..), POrB(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, propPOrB, setRect2dBehaviorWorld, setSpriteBehaviorWorld, setTextBehaviorWorld, setTransformBehaviorWorld, spriteNameB, valPOrB)
 import Seija.FRP (Behavior)
@@ -22,7 +22,7 @@ import Seija.Foreign as F
 import Unsafe.Coerce (unsafeCoerce)
 
 
-image::Asset2D -> Array Prop -> Maybe F.Entity -> AppReader F.Entity
+image::forall m.(MonadApp m) => Asset2D -> Array Prop -> Maybe F.Entity -> m F.Entity
 image s2d@(Asset2D asset) arr parent = do
     world <- askWorld
     liftEffect $ do
@@ -42,13 +42,13 @@ image s2d@(Asset2D asset) arr parent = do
      setRect2dBehaviorWorld world e arr
      pure e
 
-spriteB::Asset2D -> Behavior String ->  Array Prop -> Maybe F.Entity -> AppReader F.Entity
+spriteB::forall m.(MonadApp m) => Asset2D -> Behavior String ->  Array Prop -> Maybe F.Entity -> m F.Entity
 spriteB s2d b = sprite s2d (B b)
 
-sprite_::Asset2D -> String ->  Array Prop -> Maybe F.Entity -> AppReader F.Entity
+sprite_::forall m.(MonadApp m) => Asset2D -> String ->  Array Prop -> Maybe F.Entity -> m F.Entity
 sprite_ s2d p = sprite s2d (P p)
 
-sprite::Asset2D -> POrB String -> Array Prop -> Maybe F.Entity -> AppReader F.Entity
+sprite::forall m.(MonadApp m) => Asset2D -> POrB String -> Array Prop -> Maybe F.Entity -> m F.Entity
 sprite s2d@(Asset2D asset) spr arr parent = do
   let spriteName = valPOrB spr
   let spritePropArr = maybeToList $ propPOrB spr spriteNameB
@@ -83,7 +83,7 @@ sprite s2d@(Asset2D asset) spr arr parent = do
     isSetDefault Nothing = true
     isSetDefault (Just v) = isImageTypeDefSize v
 
-text::Asset2D -> Array Prop -> Maybe F.Entity -> AppReader F.Entity
+text::forall m.(MonadApp m) =>  Asset2D -> Array Prop -> Maybe F.Entity -> m F.Entity
 text s2d@(Asset2D asset) arr parent = do
  world <- askWorld
  liftEffect $ do
@@ -106,7 +106,7 @@ addParent _ _ Nothing = pure unit
 addParent world e (Just p) = F.setParent world e p
 
 
-emptyElement::Array Prop -> Maybe F.Entity -> AppReader F.Entity
+emptyElement::forall m.(MonadApp m) => Array Prop -> Maybe F.Entity -> m F.Entity
 emptyElement props parent = do
    world <- askWorld
    liftEffect do

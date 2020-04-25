@@ -1,6 +1,5 @@
 module Seija.Asset where
 
-import Control.Monad.Reader (ask)
 import Data.Array as A
 import Data.Int (toNumber)
 import Data.Monoid ((<>))
@@ -10,7 +9,7 @@ import Data.Vec (vec2)
 import Effect.Class (liftEffect)
 import Partial.Unsafe (unsafePartial)
 import Prelude (class Show, bind, pure, show, unit, ($))
-import Seija.App (AppReader, askWorld)
+import Seija.App (class MonadApp, askAppHandler, askWorld)
 import Seija.Foreign (World)
 import Seija.Foreign as F
 import Seija.Math.Vector (Vector2f)
@@ -56,15 +55,15 @@ fontPath::String -> AssetPath
 fontPath = Tuple Font
 
 
-loadAssetSync::AssetPath -> AppReader Asset2D
+loadAssetSync::forall m.(MonadApp m) => AssetPath -> m Asset2D
 loadAssetSync (Tuple assetType path) = do
     let typId = assetTypeToId assetType
-    handle <- ask
+    handle <- askAppHandler
     id <- liftEffect $ F.loadAssetSync handle.world handle.loader typId path
     pure $ Asset2D {assetId:id, assetType}
 
 
-getTextureSize::Asset2D -> AppReader Vector2f
+getTextureSize::forall m. (MonadApp m) => Asset2D -> m Vector2f
 getTextureSize (Asset2D asset) = do
    world <- askWorld
    let arr = F._getTextureSize world asset.assetId

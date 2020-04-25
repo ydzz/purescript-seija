@@ -3,8 +3,8 @@ module Seija.FRP where
 import Prelude
 
 import Effect (Effect)
-import Effect.Class (liftEffect)
-import Seija.App (AppReader, askWorld)
+import Effect.Class (class MonadEffect, liftEffect)
+import Seija.App (class MonadApp, askWorld)
 import Seija.Foreign (Entity, RawBehavior, RawEvent, World, _attachBehavior, _getBehaviorValue, _mapBehavior, _mergeEvent, _newBehavior, _setBehaviorCallback, _setBehaviorFoldFunc, _tagBehavior, chainEvent, chainEventEffect, getEvent)
 
 newtype Event a = Event RawEvent
@@ -27,7 +27,7 @@ fetchEventWorld world eid typ isCapture = do
   ev <- getEvent world eid (numEventType typ) isCapture
   pure $ Event ev
 
-fetchEvent::forall a.Entity -> EventType -> Boolean -> AppReader (Event a)
+fetchEvent::forall a m.(MonadApp m) => Entity -> EventType -> Boolean -> m (Event a)
 fetchEvent eid typ isCapture =  do
     world <- askWorld
     ev <- liftEffect $ getEvent world eid (numEventType typ) isCapture
@@ -80,8 +80,8 @@ attachFoldBehavior (Event ev) (Behavior b) fn = do
   _attachBehavior ev b
   _setBehaviorFoldFunc b fn
 
-effectBehavior::forall a.Behavior a -> (a -> Effect Unit) -> Effect Unit
-effectBehavior (Behavior b) f = _setBehaviorCallback b f
+effectBehavior::forall a m.(MonadEffect m) => Behavior a -> (a -> Effect Unit) -> m Unit
+effectBehavior (Behavior b) f = liftEffect $ _setBehaviorCallback b f
 
 tagMapBehavior::forall ba bb e. Behavior ba -> Event e -> (ba -> bb) -> Effect (Behavior bb)
 tagMapBehavior b e f = do
