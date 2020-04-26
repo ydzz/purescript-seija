@@ -63,6 +63,10 @@ gameMain = do
   _  <- button "减一" [C.tPos $ vec3 (-80.0) 0.0 0.0] (Just root)
   pure unit
 
+snakeMain::GameRun Unit
+snakeMain = do
+  
+  pure unit
 {-
 appMain::AppReader Unit
 appMain = do
