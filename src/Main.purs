@@ -3,33 +3,31 @@ module Main where
 import Prelude
 
 import Color.Scheme.X11 (whitesmoke)
-import Control.Monad.ST.Internal (new)
-import Data.Default (class Default, default)
+import Data.Default (default)
 import Data.Lens ((.~))
 import Data.Maybe (Maybe(..))
-import Data.Vec (vec2, vec3)
 import Effect (Effect)
 import Effect.Class.Console (error)
 import Effect.Console (log)
 import Effect.Ref as R
 import Seija.App (class IGame, GameM, startApp, version)
-import Seija.Asset (fontPath, loadAssetSync, spriteSheetPath, texturePath)
-import Seija.Component as C
+
 import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
 import Seija.Simple2D (newEventRoot)
-import Seija.UI.Buildin.Controls (UISkin, button)
+import Seija.UI.Buildin.Controls (class HasUISkin, UISkin, loadSkin)
 
 iRES_PATH :: String
 iRES_PATH = "./res/"
 
 
 data TestGame = TestGame {
-  skinRef::Maybe (R.Ref UISkin)
+  skinRef:: R.Ref (Maybe UISkin)
 }
 
-instance defaultTestGame :: Default TestGame where
-  default = TestGame { skinRef: Nothing }
-
+defaultTestGame::Effect TestGame
+defaultTestGame = do
+  ref <- R.new Nothing
+  pure $ TestGame {skinRef:ref}
 
 
 instance igameTestGame :: IGame TestGame where
@@ -37,8 +35,8 @@ instance igameTestGame :: IGame TestGame where
 
 type GameRun = GameM TestGame Effect
 
---instance uiSkinTestGame :: HasUISkin TestGame where
--- getUISkin (TestGame t) = t.skin
+instance uiSkinTestGame :: HasUISkin TestGame where
+  askSkinRef (TestGame t) = t.skinRef
 
 main :: Effect Unit
 main = do
@@ -46,7 +44,8 @@ main = do
   let s2dcfg = default #     (_windowWidth   .~ 1024)
                          >>> (_windowHeight  .~ 768)
                          >>> (_windowBgColor .~ (Just whitesmoke))
-  startApp s2dcfg default gameMain
+  testGame <- defaultTestGame 
+  startApp s2dcfg testGame gameMain
   log "main end"
 
 
@@ -55,11 +54,11 @@ gameMain::GameRun Unit
 gameMain = do
   error "Enter GameMain"
   root <- newEventRoot
-  asset <- loadAssetSync (texturePath "b.jpg")
-  sheet <- loadAssetSync (spriteSheetPath "material.json")
-  font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
-  elBtn <- button sheet font "-" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 (-100.0) 0.0 0.0] (Just root)
-  elBtn2 <- button sheet font "+" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 100.0 0.0 0.0] (Just root)
+  
+  loadSkin
+  --box <- checkBox
+  --elBtn <- button sheet font "-" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 (-100.0) 0.0 0.0] (Just root)
+  --elBtn2 <- button sheet font "+" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 100.0 0.0 0.0] (Just root)
   pure unit
 
 {-

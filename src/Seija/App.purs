@@ -64,6 +64,11 @@ class (Monad m) <= MonadAppHandler m where
 class (MonadEffect m,MonadAppHandler m) <= MonadApp m
 instance monadAppGameM ::(MonadEffect m) => MonadApp (GameM r m)
 
+askEnv::forall r m.(Monad m) => GameM r m r
+askEnv = do
+   (GameEnv env) <- ask
+   pure env.env
+
 startApp::forall a.(IGame a) => Simple2dConfig -> a -> GameM a Effect Unit -> Effect Unit
 startApp s2dCfg game main = do
     let appConfig = AppConfig {
