@@ -33,8 +33,8 @@ fetchEvent eid typ isCapture =  do
     ev <- liftEffect $ getEvent world eid (numEventType typ) isCapture
     pure $ Event ev
 
-effectEvent::forall a. Event a -> (a -> Effect Unit) -> Effect Unit
-effectEvent (Event ev) f = chainEventEffect ev f
+effectEvent::forall a m.(MonadEffect m) => Event a -> (a -> Effect Unit) -> m Unit
+effectEvent (Event ev) f = liftEffect $ chainEventEffect ev f
 
 mergeEvent::forall a.Array (Event a) -> Effect (Event a)
 mergeEvent events = do
@@ -75,10 +75,10 @@ foldBehavior val e@(Event re) f = do
   _setBehaviorFoldFunc rb f
   pure b
 
-attachFoldBehavior::forall ea a. Event ea -> Behavior a -> (a -> ea -> a) -> Effect Unit
+attachFoldBehavior::forall ea a m. (MonadEffect m) => Event ea -> Behavior a -> (a -> ea -> a) -> m Unit
 attachFoldBehavior (Event ev) (Behavior b) fn = do
-  _attachBehavior ev b
-  _setBehaviorFoldFunc b fn
+  liftEffect $ _attachBehavior ev b
+  liftEffect $ _setBehaviorFoldFunc b fn
 
 effectBehavior::forall a m.(MonadEffect m) => Behavior a -> (a -> Effect Unit) -> m Unit
 effectBehavior (Behavior b) f = liftEffect $ _setBehaviorCallback b f
@@ -87,3 +87,6 @@ tagMapBehavior::forall ba bb e. Behavior ba -> Event e -> (ba -> bb) -> Effect (
 tagMapBehavior b e f = do
   ev::Event ba <- tagBehavior b e
   foldBehavior (f $ (unsafeBehaviorValue b)) ev (const f)
+
+foldMapBehavior::forall ba bb. Behavior ba -> Event ba -> (ba -> bb) -> Effect (Behavior bb)
+foldMapBehavior b e f = foldBehavior (f $ (unsafeBehaviorValue b)) e (const f)

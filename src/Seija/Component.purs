@@ -163,6 +163,9 @@ imageSlice0Type = imageType $ SheetSlice 0
 tText::String -> Prop
 tText = prop TextRender false "text"
 
+tFontSize::Int -> Prop
+tFontSize = prop TextRender false "fontSize"
+
 tTextB::Behavior String -> Prop
 tTextB = prop TextRender true "text"
 

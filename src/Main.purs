@@ -1,20 +1,22 @@
 module Main where
 
 import Prelude
-
 import Color.Scheme.X11 (whitesmoke)
 import Data.Default (default)
 import Data.Lens ((.~))
 import Data.Maybe (Maybe(..))
+import Data.Tuple.Nested ((/\))
+import Data.Vec (vec3)
 import Effect (Effect)
-import Effect.Class.Console (error)
+import Effect.Class.Console (error, errorShow)
 import Effect.Console (log)
 import Effect.Ref as R
 import Seija.App (class IGame, GameM, startApp, version)
-
+import Seija.Component as C
+import Seija.FRP (effectEvent)
 import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
 import Seija.Simple2D (newEventRoot)
-import Seija.UI.Buildin.Controls (class HasUISkin, UISkin, loadSkin)
+import Seija.UI.Buildin.Controls (class HasUISkin, UISkin, button, checkBox, loadSkin)
 
 iRES_PATH :: String
 iRES_PATH = "./res/"
@@ -54,11 +56,11 @@ gameMain::GameRun Unit
 gameMain = do
   error "Enter GameMain"
   root <- newEventRoot
-  
   loadSkin
-  --box <- checkBox
-  --elBtn <- button sheet font "-" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 (-100.0) 0.0 0.0] (Just root)
-  --elBtn2 <- button sheet font "+" [C.rSize $ vec2 100.0 100.0,C.tPos $ vec3 100.0 0.0 0.0] (Just root)
+  (evCheck /\ el) <- checkBox false [] (Just root)
+  effectEvent evCheck errorShow
+  _  <- button "加一" [C.tPos $ vec3 (80.0) 0.0 0.0]  (Just root)
+  _  <- button "减一" [C.tPos $ vec3 (-80.0) 0.0 0.0] (Just root)
   pure unit
 
 {-
