@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+
 import Color.Scheme.X11 (whitesmoke)
 import Data.Default (default)
 import Data.Lens ((.~))
@@ -10,35 +11,14 @@ import Data.Vec (vec3)
 import Effect (Effect)
 import Effect.Class.Console (error, errorShow)
 import Effect.Console (log)
-import Effect.Ref as R
-import Seija.App (class IGame, GameM, startApp, version)
+import Seija.App (startApp, version)
 import Seija.Component as C
 import Seija.FRP (effectEvent)
 import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
 import Seija.Simple2D (newEventRoot)
-import Seija.UI.Buildin.Controls (class HasUISkin, UISkin, button, checkBox, loadSkin)
+import Seija.UI.Buildin.Controls (button, checkBox, loadSkin)
+import SnakeGame (GameRun, defaultTestGame, snakeMain)
 
-iRES_PATH :: String
-iRES_PATH = "./res/"
-
-
-data TestGame = TestGame {
-  skinRef:: R.Ref (Maybe UISkin)
-}
-
-defaultTestGame::Effect TestGame
-defaultTestGame = do
-  ref <- R.new Nothing
-  pure $ TestGame {skinRef:ref}
-
-
-instance igameTestGame :: IGame TestGame where
-  resPath _ = (Just iRES_PATH)
-
-type GameRun = GameM TestGame Effect
-
-instance uiSkinTestGame :: HasUISkin TestGame where
-  askSkinRef (TestGame t) = t.skinRef
 
 main :: Effect Unit
 main = do
@@ -47,7 +27,7 @@ main = do
                          >>> (_windowHeight  .~ 768)
                          >>> (_windowBgColor .~ (Just whitesmoke))
   testGame <- defaultTestGame 
-  startApp s2dcfg testGame gameMain
+  startApp s2dcfg testGame snakeMain
   log "main end"
 
 
@@ -63,10 +43,7 @@ gameMain = do
   _  <- button "减一" [C.tPos $ vec3 (-80.0) 0.0 0.0] (Just root)
   pure unit
 
-snakeMain::GameRun Unit
-snakeMain = do
-  
-  pure unit
+
 {-
 appMain::AppReader Unit
 appMain = do

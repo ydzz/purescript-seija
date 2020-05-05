@@ -12,6 +12,10 @@
     {
       "target": "button-active",
       "border":[[6,6,6,6]]
+    },
+    {
+      "target": "entry",
+      "border":[[4,4,4,4]]
     }
   ],
   "sprites": [

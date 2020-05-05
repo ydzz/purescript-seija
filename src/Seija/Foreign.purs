@@ -188,12 +188,15 @@ foreign import _mapBehavior::forall a b. RawBehavior -> (a -> b) -> RawBehavior
 
 foreign import _tagBehavior::RawBehavior -> RawEvent -> Effect RawEvent
 
+foreign import _newEvent::Effect RawEvent
 
+foreign import _setNextEvent::RawEvent -> RawEvent -> Effect Unit
 
+foreign import getChildrens::World -> Entity -> Effect (Array Entity)
 
+foreign import removeAllChildren::World -> Entity -> Effect Unit
 
-
-
+foreign import unsafeShow::forall a. a -> Effect Unit
 
 
 

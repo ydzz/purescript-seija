@@ -304,6 +304,41 @@ exports._tagBehavior = function(behavior) {
   }
 }
 
+exports._setNextEvent = function(event) {
+  return function(nextEvent) {
+    return function() {
+      return setNextEvent(event,nextEvent);
+    }
+  }
+}
+
+exports._newEvent = function() {
+  return seija.g2d.newEvent();
+}
+
+exports.getChildrens = function(world) {
+  return function(pe) {
+    return function() {
+      var arr = seija.g2d.getChildrens(world,pe);
+      return arr;
+    }
+  }
+}
+
+exports.removeAllChildren = function(world) {
+  return function(pe) {
+    return function() {
+      seija.g2d.removeAllChildren(world,pe);
+    }
+  }
+}
+
+exports.unsafeShow = function(val) {
+  return function() {
+    console.error(val);
+  }
+}
+
 function tagBehavior(b,ev) {
   var te = seija.g2d.tagBehavior(b,ev);
   if(ev.childrens == undefined) {
@@ -336,5 +371,13 @@ function mergeEvent(eventArray) {
 
 function setBehaviorFoldFunc(b,f) {
   b.myfunc = f;
-  seija.g2d.behaviorSetFoldFunc(b,b.myfunc);
+  seija.g2d.setBehaviorFoldFunc(b,b.myfunc);
+}
+
+function setNextEvent(event,nextEvent) {
+  seija.g2d.setNextEvent(event,nextEvent);
+  if(event.childrens == undefined) {
+      event.childrens = [];
+  }
+  event.childrens.push(nextEvent);
 }

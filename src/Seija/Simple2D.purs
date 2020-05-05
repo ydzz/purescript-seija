@@ -17,6 +17,11 @@ newEntity = do
   app <- askAppHandler
   liftEffect $ F.newEntity app.world
 
+childrens::forall m.MonadApp m => Entity -> m (Array Entity)
+childrens p = do
+   world <- askWorld
+   liftEffect $ F.getChildrens world p
+
 addCABEventRoot::forall m.MonadApp m => Entity -> m Entity
 addCABEventRoot e = do
    app <- askAppHandler

@@ -1,0 +1,59 @@
+{
+    "meta": {
+      "width": 128,
+      "height": 128,
+      "texture": "snake.png"
+    },
+    "sliceBorder":[],
+    "sprites": [
+      {
+        "height": 8,
+        "name": "whitex",
+        "width": 8,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "height": 8,
+        "name": "a-0",
+        "width": 8,
+        "x": 8,
+        "y": 0
+      },
+      {
+        "height": 8,
+        "name": "a-1",
+        "width": 8,
+        "x": 16,
+        "y": 0
+      },
+      {
+        "height": 8,
+        "name": "a-2",
+        "width": 8,
+        "x": 24,
+        "y": 0
+      },
+      {
+        "height": 8,
+        "name": "a-3",
+        "width": 8,
+        "x": 32,
+        "y": 0
+      },
+      {
+        "height": 8,
+        "name": "a-4",
+        "width": 8,
+        "x": 40,
+        "y": 0
+      },
+      {
+        "height": 8,
+        "name": "white",
+        "width": 8,
+        "x": 8,
+        "y": 16
+      }
+    ]
+  }

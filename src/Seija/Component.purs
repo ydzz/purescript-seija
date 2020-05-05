@@ -3,13 +3,13 @@ module Seija.Component where
 import Prelude
 
 import Color (Color)
-import Data.Array (filter, length)
+import Data.Array (filter, find, length)
 import Data.ColorEx (toNumberArray)
 import Data.Int (toNumber)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (D2, D3)
-import Data.Vec (Vec, toArray)
+import Data.Vec (Vec, toArray, vec2, vec3)
 import Effect (Effect)
 import Foreign.Object as O
 import Seija.FRP (Behavior(..))
@@ -129,6 +129,9 @@ buildProp arr cType isBehavior = O.fromFoldable $ map (\(Prop _ _ k v) -> k /\ v
 tPos:: Vector3f -> Prop
 tPos = prop Transform false "pos"
 
+tPosVec3::Number -> Number -> Number -> Prop
+tPosVec3 x y z = tPos $ vec3 x y z
+
 tPosB::Behavior Vector3f -> Prop
 tPosB = prop Transform true "pos"
 
@@ -137,10 +140,12 @@ tScale = prop  Transform false  "scale"
 
 tRotate::Vector3f -> Prop
 tRotate = prop Transform false "rotate"
-    
 
 rSize::Vector2f -> Prop
 rSize = prop  Rect2D false "size"
+
+rSizeVec2::Number -> Number -> Prop
+rSizeVec2 x y = rSize $ vec2 x y
 
 rSizeB::Behavior Vector2f -> Prop
 rSizeB = prop  Rect2D true "size"
@@ -193,3 +198,10 @@ setSpriteBehaviorWorld = setBehaviorWorld SpriteRender _setSpriteRenderBehavior
 
 setTextBehaviorWorld::World -> Entity -> (Array Prop) -> Effect Unit
 setTextBehaviorWorld = setBehaviorWorld TextRender _setTextRenderBehavior
+
+
+hasProp::Array Prop -> (Prop -> Boolean) -> Boolean
+hasProp arr f = isJust $ find f arr
+
+hasPropByName :: Array Prop -> String -> Boolean
+hasPropByName arr attrName = hasProp arr (\(Prop _ _ name _) -> name == "size") 

@@ -12,8 +12,7 @@ version::String
 version = appVersion
 
 type AppHandler = {
-    world::  World,
-    loader:: Loader
+    world::  World
 }
 
 newtype GameEnv a = GameEnv {
@@ -83,8 +82,7 @@ startApp s2dCfg game main = do
 
 onStartApp::forall  r. GameM r Effect Unit -> r -> World -> Effect Unit
 onStartApp (GameM reader) game world = do
-    loader <- fetchLoader world
-    let appHandler = {world,loader}
+    let appHandler = {world}
     let env = GameEnv {appHandler,env: game }
     runReaderT reader env
 

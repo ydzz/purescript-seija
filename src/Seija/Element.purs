@@ -1,9 +1,11 @@
 module Seija.Element (
-  image,sprite,text,spriteB,sprite_,emptyElement
+  image,sprite,text,spriteB,sprite_,emptyElement,setParent,
+  switchElement
 ) where
 
 import Prelude
 
+import Control.Monad.Reader (ask, runReaderT)
 import Data.Array (index)
 import Data.Int (fromNumber)
 import Data.Maybe (Maybe(..), fromJust)
@@ -12,68 +14,69 @@ import Data.Tuple.Nested ((/\))
 import Data.Vec (vec2)
 import Effect (Effect)
 import Effect.Class (liftEffect)
+import Effect.Console (errorShow)
 import Foreign.Object as O
 import Partial.Unsafe (unsafePartial)
-import Seija.App (class MonadApp, askWorld)
+import Seija.App (class MonadApp, GameM(..), askWorld)
 import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
-import Seija.Component (ComponentType(..), POrB(..), Prop, buildProp, isImageTypeDefSize, propFromVector2f, propPOrB, setRect2dBehaviorWorld, setSpriteBehaviorWorld, setTextBehaviorWorld, setTransformBehaviorWorld, spriteNameB, valPOrB)
-import Seija.FRP (Behavior)
+import Seija.Component as C
+import Seija.FRP (Behavior, effectBehavior, unsafeBehaviorValue)
 import Seija.Foreign as F
 import Unsafe.Coerce (unsafeCoerce)
 
 
-image::forall m.(MonadApp m) => Asset2D -> Array Prop -> Maybe F.Entity -> m F.Entity
+image::forall m.(MonadApp m) => Asset2D -> Array C.Prop -> Maybe F.Entity -> m F.Entity
 image s2d@(Asset2D asset) arr parent = do
     world <- askWorld
     liftEffect $ do
      e <- F.newEntity world
-     _ <- F.addTransformByProp world e (buildProp arr Transform false)
-     addParent world e parent
-     let rectProp =  buildProp arr Rect2D false
+     _ <- F.addTransformByProp world e (C.buildProp arr C.Transform false)
+     addMayParent world e parent
+     let rectProp =  C.buildProp arr C.Rect2D false
      if (not $ O.member "size" rectProp)
        then do
         let vecSize = getTextureSizeWorld world s2d
-        let newRectProp = O.insert "size" (propFromVector2f vecSize) rectProp
+        let newRectProp = O.insert "size" (C.propFromVector2f vecSize) rectProp
         F.addRect2DByProp world e newRectProp *> pure unit
       else  F.addRect2DByProp world e rectProp *> pure unit
-     _ <- F.addImageRenderByProp world e asset.assetId (buildProp arr ImageRender false)
+     _ <- F.addImageRenderByProp world e asset.assetId (C.buildProp arr C.ImageRender false)
      --set behavior
-     setTransformBehaviorWorld world e arr
-     setRect2dBehaviorWorld world e arr
+     C.setTransformBehaviorWorld world e arr
+     C.setRect2dBehaviorWorld world e arr
      pure e
 
-spriteB::forall m.(MonadApp m) => Asset2D -> Behavior String ->  Array Prop -> Maybe F.Entity -> m F.Entity
-spriteB s2d b = sprite s2d (B b)
+spriteB::forall m.(MonadApp m) => Asset2D -> Behavior String ->  Array C.Prop -> Maybe F.Entity -> m F.Entity
+spriteB s2d b = sprite s2d (C.B b)
 
-sprite_::forall m.(MonadApp m) => Asset2D -> String ->  Array Prop -> Maybe F.Entity -> m F.Entity
-sprite_ s2d p = sprite s2d (P p)
+sprite_::forall m.(MonadApp m) => Asset2D -> String ->  Array C.Prop -> Maybe F.Entity -> m F.Entity
+sprite_ s2d p = sprite s2d (C.P p)
 
-sprite::forall m.(MonadApp m) => Asset2D -> POrB String -> Array Prop -> Maybe F.Entity -> m F.Entity
+sprite::forall m.(MonadApp m) => Asset2D -> C.POrB String -> Array C.Prop -> Maybe F.Entity -> m F.Entity
 sprite s2d@(Asset2D asset) spr arr parent = do
-  let spriteName = valPOrB spr
-  let spritePropArr = maybeToList $ propPOrB spr spriteNameB
+  let spriteName = C.valPOrB spr
+  let spritePropArr = maybeToList $ C.propPOrB spr C.spriteNameB
   world <- askWorld
   liftEffect $ do
     e <- F.newEntity world
-    _ <- F.addTransformByProp world e (buildProp arr Transform false)
-    addParent world e parent
-    let rectProp =  buildProp arr Rect2D false
+    _ <- F.addTransformByProp world e (C.buildProp arr C.Transform false)
+    addMayParent world e parent
+    let rectProp =  C.buildProp arr C.Rect2D false
     let isNoSize = not $ O.member "size" rectProp
     if (isNoSize && isSetDefault mayImageIntType) 
     then do
         let (_ /\ _ /\ w /\ h /\ unit) = getSpirteRectInfo world s2d spriteName
-        let newRectProp = O.insert "size" (propFromVector2f $ vec2 w h) rectProp
+        let newRectProp = O.insert "size" (C.propFromVector2f $ vec2 w h) rectProp
         F.addRect2DByProp world e newRectProp *> pure unit
     else  F.addRect2DByProp world e rectProp *> pure unit
     F._addSpriteRenderByProp world e asset.assetId spriteName spriteProp
     F._addTransparent world e
     --set behavior
-    setTransformBehaviorWorld world e arr
-    setRect2dBehaviorWorld world e arr
-    setSpriteBehaviorWorld world e (arr <> spritePropArr)
+    C.setTransformBehaviorWorld world e arr
+    C.setRect2dBehaviorWorld world e arr
+    C.setSpriteBehaviorWorld world e (arr <> spritePropArr)
     pure e
   where
-    spriteProp = buildProp arr SpriteRender false
+    spriteProp = C.buildProp arr C.SpriteRender false
     mayImageIntType::Maybe Int
     mayImageIntType = do
       typeProp <- O.lookup "type" spriteProp
@@ -81,39 +84,60 @@ sprite s2d@(Asset2D asset) spr arr parent = do
       pure $ unsafePartial $ fromJust $ fromNumber fistNumber
     isSetDefault::Maybe Int -> Boolean
     isSetDefault Nothing = true
-    isSetDefault (Just v) = isImageTypeDefSize v
+    isSetDefault (Just v) = C.isImageTypeDefSize v
 
-text::forall m.(MonadApp m) =>  Asset2D -> Array Prop -> Maybe F.Entity -> m F.Entity
+text::forall m.(MonadApp m) =>  Asset2D -> Array C.Prop -> Maybe F.Entity -> m F.Entity
 text s2d@(Asset2D asset) arr parent = do
  world <- askWorld
  liftEffect $ do
     e <- F.newEntity world
-    _ <- F.addTransformByProp world e (buildProp arr Transform false)
-    let rectProp =  buildProp arr Rect2D false
+    _ <- F.addTransformByProp world e (C.buildProp arr C.Transform false)
+    let rectProp =  C.buildProp arr C.Rect2D false
     _ <- F.addRect2DByProp world e rectProp
-    addParent world e parent
+    addMayParent world e parent
     F._addTransparent world e
-    F._addTextRenderByProp world e asset.assetId $ buildProp arr TextRender false
+    F._addTextRenderByProp world e asset.assetId $ C.buildProp arr C.TextRender false
      --set behavior
-    setTransformBehaviorWorld world e arr
-    setRect2dBehaviorWorld world e arr
-    setTextBehaviorWorld  world e arr
+    C.setTransformBehaviorWorld world e arr
+    C.setRect2dBehaviorWorld world e arr
+    C.setTextBehaviorWorld  world e arr
     pure e
 
 
-addParent::F.World -> F.Entity -> Maybe F.Entity -> Effect Unit
-addParent _ _ Nothing = pure unit
-addParent world e (Just p) = F.setParent world e p
+addMayParent::F.World -> F.Entity -> Maybe F.Entity -> Effect Unit
+addMayParent _ _ Nothing = pure unit
+addMayParent world e (Just p) = F.setParent world e p
 
+setParent::forall m.MonadApp m => F.Entity -> F.Entity -> m Unit
+setParent e p = do
+  world <- askWorld
+  liftEffect $ F.setParent world e p
 
-emptyElement::forall m.(MonadApp m) => Array Prop -> Maybe F.Entity -> m F.Entity
+emptyElement::forall m.(MonadApp m) => Array C.Prop -> Maybe F.Entity -> m F.Entity
 emptyElement props parent = do
    world <- askWorld
    liftEffect do
     e <- F.newEntity world
-    _ <- F.addTransformByProp world e $ buildProp props Transform false
-    _ <- F.addRect2DByProp world e $ buildProp props Rect2D false
-    setTransformBehaviorWorld world e props
-    setRect2dBehaviorWorld world e props
-    addParent world e parent
+    _ <- F.addTransformByProp world e $ C.buildProp props C.Transform false
+    _ <- F.addRect2DByProp world e $ C.buildProp props C.Rect2D false
+    C.setTransformBehaviorWorld world e props
+    C.setRect2dBehaviorWorld world e props
+    addMayParent world e parent
     pure e
+
+
+switchElement::forall r. F.Entity -> Behavior (GameM r Effect F.Entity) -> GameM r Effect Unit
+switchElement parent bVal = do
+  let createFn = unsafeBehaviorValue bVal
+  eid <- createFn
+  setParent eid parent
+  env <- ask
+  world <- askWorld
+  effectBehavior bVal (\(GameM bReader) -> do
+                        errorShow "effect"
+                        F.removeAllChildren world parent
+                        eId <- runReaderT bReader env
+                        F.setParent world eId parent
+                        pure unit
+                      )
+  pure unit

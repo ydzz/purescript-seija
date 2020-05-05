@@ -2,6 +2,7 @@ module Seija.Asset where
 
 import Data.Array as A
 import Data.Int (toNumber)
+import Data.Maybe (Maybe)
 import Data.Monoid ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (Tuple4, (/\))
@@ -9,8 +10,8 @@ import Data.Vec (vec2)
 import Effect.Class (liftEffect)
 import Partial.Unsafe (unsafePartial)
 import Prelude (class Show, bind, pure, show, unit, ($))
-import Seija.App (class MonadApp, askAppHandler, askWorld)
-import Seija.Foreign (World)
+import Seija.App (class MonadApp, askWorld)
+import Seija.Foreign (class ToJsObject, World, fetchLoader)
 import Seija.Foreign as F
 import Seija.Math.Vector (Vector2f)
 
@@ -58,8 +59,9 @@ fontPath = Tuple Font
 loadAssetSync::forall m.(MonadApp m) => AssetPath -> m Asset2D
 loadAssetSync (Tuple assetType path) = do
     let typId = assetTypeToId assetType
-    handle <- askAppHandler
-    id <- liftEffect $ F.loadAssetSync handle.world handle.loader typId path
+    world <- askWorld
+    loader <- liftEffect $  fetchLoader world
+    id <- liftEffect $ F.loadAssetSync world loader typId path
     pure $ Asset2D {assetId:id, assetType}
 
 
@@ -86,3 +88,20 @@ getSpirteRectInfo world (Asset2D asset) spriteName = x /\ y /\ w /\ h /\ unit
     y = unsafePartial $ A.unsafeIndex arr 1
     w = unsafePartial $ A.unsafeIndex arr 2
     h = unsafePartial $ A.unsafeIndex arr 3
+
+
+class (ToJsObject a) <= LoaderInfo a
+
+newtype TextureLoaderInfo = TextureLoaderInfo {
+   path::String,
+   config::Maybe TextureConfig
+}
+
+newtype SpriteSheetLoaderInfo = SpriteSheetLoaderInfo {
+   path::String,
+   config::Maybe TextureConfig
+}
+
+newtype TextureConfig = TextureConfig {
+
+}
