@@ -46,8 +46,10 @@ exports.loadAssetSync = function(world) {
   return function(loader) {
     return function(typid) {
       return function(path) {
-        return function() {
-          return seija.g2d.loadSync(loader,world,typid,path);
+        return function(loaderConfig) {
+          return function() {
+            return seija.g2d.loadSync(loader,world,typid,path,loaderConfig.config);
+          }
         }
       }
     }

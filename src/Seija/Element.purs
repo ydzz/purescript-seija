@@ -18,15 +18,16 @@ import Effect.Console (errorShow)
 import Foreign.Object as O
 import Partial.Unsafe (unsafePartial)
 import Seija.App (class MonadApp, GameM(..), askWorld)
-import Seija.Asset (Asset2D(..), getSpirteRectInfo, getTextureSizeWorld)
+import Seija.Asset (getSpirteRectInfo, getTextureSizeWorld)
+import Seija.Asset.Types (Font(..), SpriteSheet(..), Texture(..))
 import Seija.Component as C
 import Seija.FRP (Behavior, effectBehavior, unsafeBehaviorValue)
 import Seija.Foreign as F
 import Unsafe.Coerce (unsafeCoerce)
 
 
-image::forall m.(MonadApp m) => Asset2D -> Array C.Prop -> Maybe F.Entity -> m F.Entity
-image s2d@(Asset2D asset) arr parent = do
+image::forall m.(MonadApp m) => Texture -> Array C.Prop -> Maybe F.Entity -> m F.Entity
+image s2d@(Texture id) arr parent = do
     world <- askWorld
     liftEffect $ do
      e <- F.newEntity world
@@ -39,20 +40,20 @@ image s2d@(Asset2D asset) arr parent = do
         let newRectProp = O.insert "size" (C.propFromVector2f vecSize) rectProp
         F.addRect2DByProp world e newRectProp *> pure unit
       else  F.addRect2DByProp world e rectProp *> pure unit
-     _ <- F.addImageRenderByProp world e asset.assetId (C.buildProp arr C.ImageRender false)
+     _ <- F.addImageRenderByProp world e id (C.buildProp arr C.ImageRender false)
      --set behavior
      C.setTransformBehaviorWorld world e arr
      C.setRect2dBehaviorWorld world e arr
      pure e
 
-spriteB::forall m.(MonadApp m) => Asset2D -> Behavior String ->  Array C.Prop -> Maybe F.Entity -> m F.Entity
+spriteB::forall m.(MonadApp m) => SpriteSheet -> Behavior String ->  Array C.Prop -> Maybe F.Entity -> m F.Entity
 spriteB s2d b = sprite s2d (C.B b)
 
-sprite_::forall m.(MonadApp m) => Asset2D -> String ->  Array C.Prop -> Maybe F.Entity -> m F.Entity
+sprite_::forall m.(MonadApp m) => SpriteSheet -> String ->  Array C.Prop -> Maybe F.Entity -> m F.Entity
 sprite_ s2d p = sprite s2d (C.P p)
 
-sprite::forall m.(MonadApp m) => Asset2D -> C.POrB String -> Array C.Prop -> Maybe F.Entity -> m F.Entity
-sprite s2d@(Asset2D asset) spr arr parent = do
+sprite::forall m.(MonadApp m) => SpriteSheet -> C.POrB String -> Array C.Prop -> Maybe F.Entity -> m F.Entity
+sprite s2d@(SpriteSheet id) spr arr parent = do
   let spriteName = C.valPOrB spr
   let spritePropArr = maybeToList $ C.propPOrB spr C.spriteNameB
   world <- askWorld
@@ -68,7 +69,7 @@ sprite s2d@(Asset2D asset) spr arr parent = do
         let newRectProp = O.insert "size" (C.propFromVector2f $ vec2 w h) rectProp
         F.addRect2DByProp world e newRectProp *> pure unit
     else  F.addRect2DByProp world e rectProp *> pure unit
-    F._addSpriteRenderByProp world e asset.assetId spriteName spriteProp
+    F._addSpriteRenderByProp world e id spriteName spriteProp
     F._addTransparent world e
     --set behavior
     C.setTransformBehaviorWorld world e arr
@@ -86,8 +87,8 @@ sprite s2d@(Asset2D asset) spr arr parent = do
     isSetDefault Nothing = true
     isSetDefault (Just v) = C.isImageTypeDefSize v
 
-text::forall m.(MonadApp m) =>  Asset2D -> Array C.Prop -> Maybe F.Entity -> m F.Entity
-text s2d@(Asset2D asset) arr parent = do
+text::forall m.(MonadApp m) =>  Font -> Array C.Prop -> Maybe F.Entity -> m F.Entity
+text (Font id) arr parent = do
  world <- askWorld
  liftEffect $ do
     e <- F.newEntity world
@@ -96,7 +97,7 @@ text s2d@(Asset2D asset) arr parent = do
     _ <- F.addRect2DByProp world e rectProp
     addMayParent world e parent
     F._addTransparent world e
-    F._addTextRenderByProp world e asset.assetId $ C.buildProp arr C.TextRender false
+    F._addTextRenderByProp world e id $ C.buildProp arr C.TextRender false
      --set behavior
     C.setTransformBehaviorWorld world e arr
     C.setRect2dBehaviorWorld world e arr

@@ -1,19 +1,19 @@
 module SnakeGame where
 
 import Prelude
-
-import Color (black, rgba, white)
-import Color.Scheme.X11 (gray, red)
+import Color (black, white)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Data.Vec (vec2, vec3)
 import Effect (Effect)
-import Effect.Class.Console (errorShow)
 import Effect.Ref as R
 import Seija.App (class IGame, class MonadApp, GameM)
-import Seija.Asset (Asset2D(..), loadAssetSync, spriteSheetPath)
+import Seija.Asset (loadAsset)
+import Seija.Asset.LoaderInfo (spriteSheetLoaderInfo)
+import Seija.Asset.Texture (Filter(..), SamplerDesc(..), TextureConfig(..), WrapMode(..))
+import Seija.Asset.Types (SpriteSheet)
 import Seija.Component as C
-import Seija.Element (emptyElement, sprite_, switchElement, text)
+import Seija.Element (sprite_, switchElement, text)
 import Seija.FRP as FRP
 import Seija.Foreign (Entity)
 import Seija.Simple2D (newEventRoot)
@@ -63,8 +63,8 @@ snakeMain = do
   loadSkin
   skin <- unsafeAskUISkin
   root <- newEventRoot
-  snakeSheet <- loadAssetSync (spriteSheetPath "snake.json")
-  errorShow snakeSheet
+  let sheetConfig = TextureConfig { generate_mips:false,  premultiply_alpha:false, sampler_info: SamplerDesc {filter:Nearest,wrap_mode:Clamp } }
+  snakeSheet <- loadAsset (spriteSheetLoaderInfo "snake.json" (Just sheetConfig))
   (rootEvent::FRP.Event GameEvent) <- FRP.newEvent
   (dGameData::FRP.Dynamic GameData) <- FRP.foldDynamic newGameData rootEvent handleEvent
   evBoxStart <- FRP.newEventBox
@@ -77,7 +77,7 @@ snakeMain = do
 
   pure unit
 
-gameSateToElement::GameState -> FRP.EventBox Entity -> Asset2D -> GameRun Entity
+gameSateToElement::GameState -> FRP.EventBox Entity -> SpriteSheet -> GameRun Entity
 gameSateToElement MainMenu evBox _       = mainMenu evBox
 gameSateToElement Gameing  evBox sheet   = gameScene sheet
 gameSateToElement EndMenu  evBox sheet   = gameScene sheet
@@ -91,13 +91,13 @@ mainMenu::forall m. MonadApp m => MonadSkin m => FRP.EventBox Entity -> m Entity
 mainMenu evBox = do
   skin <- unsafeAskUISkin
   elBg <- sprite_ skin.defaultSheet "entry" [C.rSize $ vec2 1024.0 768.0,C.imageSlice0Type] Nothing
-  _ <- text skin.defaultFont [C.tText "贪     食     蛇",C.cColor white,C.rSize $ vec2 400.0 40.0,C.tFontSize 40,C.tPos $ vec3 0.0 180.0 0.0] (Just elBg)
-  (eClick /\ elBtn) <- button "开始游戏" [C.tFontSize 30,C.rSizeVec2 240.0 80.0,C.tPosVec3 0.0 (-200.0) 0.0] (Just elBg)
+  _ <- text skin.defaultFont [C.tText "",C.cColor white,C.rSize $ vec2 400.0 40.0,C.tFontSize 40,C.tPos $ vec3 0.0 180.0 0.0] (Just elBg)
+  (eClick /\ elBtn) <- button "" [C.tFontSize 30,C.rSizeVec2 240.0 80.0,C.tPosVec3 0.0 (-200.0) 0.0] (Just elBg)
   FRP.putEventBox eClick evBox
   pure elBg
 
 
-gameScene::forall m. MonadApp m => MonadSkin m =>Asset2D ->  m Entity
+gameScene::forall m. MonadApp m => MonadSkin m => SpriteSheet ->  m Entity
 gameScene sheet = do
   skin <- unsafeAskUISkin
   elBg <- sprite_ sheet "white" [C.rSizeVec2 1024.0 768.0,C.cColor black] Nothing

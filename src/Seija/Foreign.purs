@@ -18,8 +18,8 @@ import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object as FO
 import Prelude (Unit, map, ($), (<<<))
 
-class ToJsObject a where
-    toJsObject::a -> FO.Object Foreign
+class ToFFIJsObject a where
+    toJsObject::a -> Foreign
   
 type WindowConfigRecord = {
     width::Int,
@@ -43,8 +43,8 @@ toForeign:: forall a. a -> Foreign
 toForeign = unsafeToForeign
 
 
-instance toJsOjectWindowConfig :: ToJsObject WindowConfig where
-    toJsObject (WindowConfig cfg) = arr
+instance toJsOjectWindowConfig :: ToFFIJsObject WindowConfig where
+    toJsObject (WindowConfig cfg) = unsafeToForeign arr
       where
         arr = FO.fromFoldable $ ["width"  /\ toForeign cfg.width,
                                  "height" /\ toForeign cfg.height] <> color
@@ -63,8 +63,8 @@ instance defaultSimple2dConfig :: Default Simple2dConfig where
         window : default
     }
 
-instance toJsObejctSimple2dConfig:: ToJsObject Simple2dConfig where
-    toJsObject (Simple2dConfig cfg) = FO.fromFoldable ["window" /\ (toForeign $ toJsObject cfg.window)]
+instance toJsObejctSimple2dConfig:: ToFFIJsObject Simple2dConfig where
+    toJsObject (Simple2dConfig cfg) = unsafeToForeign $ FO.fromFoldable ["window" /\ toJsObject cfg.window]
 
 --lWindow::Prism' Simple2dConfig WindowConfig
 --lWindow = prism (\w -> Simple2dConfig {window : w}) (\s -> Right $ (unwrap s).window)
@@ -99,10 +99,10 @@ newtype AppConfig = AppConfig {
     resPath::Maybe String
 }
 
-instance toJsObjectAppConfig :: ToJsObject AppConfig where
-    toJsObject (AppConfig cfg) = FO.fromFoldable $ ["OnStart"  /\  (toForeign  cfg.onStart),
-                                                    "OnUpdate" /\  (toForeign  cfg.onUpdate),
-                                                    "OnQuit"   /\  (toForeign cfg.onQuit)] <> path
+instance toJsObjectAppConfig :: ToFFIJsObject AppConfig where
+    toJsObject (AppConfig cfg) = unsafeToForeign $ FO.fromFoldable $ ["OnStart"  /\  (toForeign  cfg.onStart),
+                                                                      "OnUpdate" /\  (toForeign  cfg.onUpdate),
+                                                                      "OnQuit"   /\  (toForeign cfg.onQuit)] <> path
      where
        path::Array (Tuple String Foreign)
        path = map (\s -> Tuple "ResPath" $ toForeign s) $ maybeToList cfg.resPath
@@ -118,7 +118,7 @@ foreign import data RawBehavior:: Type
 foreign import data PropValue ∷ Type
 type Entity = Int
 
-foreign import _newSimple2d::FO.Object Foreign -> Simple2d
+foreign import _newSimple2d::Foreign -> Simple2d
 
 newSimple2d::Simple2dConfig -> Simple2d
 newSimple2d cfg = _newSimple2d (toJsObject cfg)
@@ -126,13 +126,13 @@ newSimple2d cfg = _newSimple2d (toJsObject cfg)
 newApp::Simple2d -> AppConfig -> App
 newApp s2d cfg = _newApp s2d (toJsObject cfg)
 
-foreign import _newApp::Simple2d -> FO.Object Foreign -> App
+foreign import _newApp::Simple2d ->Foreign -> App
 
 foreign import runApp::App -> Effect Unit
 
 foreign import fetchLoader::World -> Effect Loader
 
-foreign import loadAssetSync::World -> Loader -> Int -> String -> Effect Int
+foreign import loadAssetSync::World -> Loader -> Int -> String -> Foreign -> Effect Int
 
 foreign import newEntity::World -> Effect Int
 

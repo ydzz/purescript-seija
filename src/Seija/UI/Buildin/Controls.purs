@@ -12,7 +12,9 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Ref as R
 import Partial.Unsafe (unsafePartial)
 import Seija.App (class MonadApp, GameM, askEnv)
-import Seija.Asset (Asset2D, fontPath, loadAssetSync, spriteSheetPath)
+import Seija.Asset (loadAsset)
+import Seija.Asset.LoaderInfo (fontLoaderInfo, spriteSheetLoaderInfo)
+import Seija.Asset.Types (Font, SpriteSheet)
 import Seija.Component (Prop(..), hasPropByName)
 import Seija.Component as C
 import Seija.Element (emptyElement, spriteB, text)
@@ -22,8 +24,8 @@ import Seija.Foreign (Entity)
 
 
 type UISkin =  { 
-  defaultFont::Asset2D,
-  defaultSheet::Asset2D,
+  defaultFont::Font,
+  defaultSheet::SpriteSheet,
   fontSize::Int
 }
 
@@ -46,8 +48,8 @@ instance monadSkinGameM ::(Monad m,MonadEffect m,HasUISkin r) => MonadSkin (Game
 
 loadSkin::forall m.MonadApp m => MonadSkin m => m Unit
 loadSkin = do
-  sheet <- loadAssetSync (spriteSheetPath "material.json")
-  font <- loadAssetSync (fontPath "WenQuanYiMicroHei.ttf")
+  sheet <- loadAsset (spriteSheetLoaderInfo "material.json" Nothing)
+  font <-  loadAsset (fontLoaderInfo "WenQuanYiMicroHei.ttf")
   writeSkin { defaultSheet:sheet, defaultFont:font ,fontSize:16 }
 
 unsafeAskUISkin::forall m. MonadSkin m => MonadEffect m => m UISkin
