@@ -8,6 +8,13 @@
     "sprites": [
       {
         "height": 8,
+        "name": "white",
+        "width": 8,
+        "x": 8,
+        "y": 16
+      },
+      {
+        "height": 8,
         "name": "whitex",
         "width": 8,
         "x": 0,
@@ -49,11 +56,46 @@
         "y": 0
       },
       {
-        "height": 8,
-        "name": "white",
-        "width": 8,
-        "x": 8,
-        "y": 16
+        "width":8,
+        "height":8,
+        "name":"cherry",
+        "x":48,
+        "y":0
+      },
+      {
+        "width":8,
+        "height":8,
+        "name":"water",
+        "x":56,
+        "y":0
+      },
+      {
+        "width":8,
+        "height":8,
+        "name":"deep-water",
+        "x":64,
+        "y":0
+      },
+      {
+        "width":8,
+        "height":8,
+        "name":"yellow-grass0",
+        "x":72,
+        "y":0
+      },
+      {
+        "width":8,
+        "height":8,
+        "name":"yellow-grass1",
+        "x":80,
+        "y":0
+      },
+      {
+        "width":8,
+        "height":8,
+        "name":"yellow-grass2",
+        "x":88,
+        "y":0
       }
     ]
   }

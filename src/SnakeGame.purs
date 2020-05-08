@@ -1,9 +1,11 @@
 module SnakeGame where
 
 import Prelude
+
 import Color (black, white)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
+import Data.Typelevel.Undefined (undefined)
 import Data.Vec (vec2, vec3)
 import Effect (Effect)
 import Effect.Ref as R
@@ -67,33 +69,30 @@ snakeMain = do
   snakeSheet <- loadAsset (spriteSheetLoaderInfo "snake.json" (Just sheetConfig))
   (rootEvent::FRP.Event GameEvent) <- FRP.newEvent
   (dGameData::FRP.Dynamic GameData) <- FRP.foldDynamic newGameData rootEvent handleEvent
-  evBoxStart <- FRP.newEventBox
-  (bElement::FRP.Behavior (GameRun Entity)) <- FRP.foldBehavior (mainMenu evBoxStart) 
+  
+  (bElement::FRP.Behavior (GameRun Entity)) <- FRP.foldBehavior (mainMenu rootEvent) 
                                                                 (FRP.updated dGameData) 
-                                                                (\a ea -> gameSateToElement ea.state evBoxStart snakeSheet)
+                                                                (\a ea -> gameSateToElement ea.state undefined snakeSheet)
   switchElement root bElement
-  evClickStart <- FRP.unsafeUnEventBox evBoxStart
-  FRP.setNextEvent (evClickStart $> StartGame) rootEvent
-
   pure unit
 
-gameSateToElement::GameState -> FRP.EventBox Entity -> SpriteSheet -> GameRun Entity
-gameSateToElement MainMenu evBox _       = mainMenu evBox
-gameSateToElement Gameing  evBox sheet   = gameScene sheet
-gameSateToElement EndMenu  evBox sheet   = gameScene sheet
+gameSateToElement::GameState -> FRP.Event GameEvent -> SpriteSheet -> GameRun Entity
+gameSateToElement MainMenu rootev _       = mainMenu undefined
+gameSateToElement Gameing  rootev sheet   = gameScene sheet
+gameSateToElement EndMenu  rootev sheet   = gameScene sheet
   
 
 handleEvent::GameData -> GameEvent -> GameData
 handleEvent d StartGame = d { state = Gameing }
 
 
-mainMenu::forall m. MonadApp m => MonadSkin m => FRP.EventBox Entity -> m Entity
-mainMenu evBox = do
+mainMenu::forall m. MonadApp m => MonadSkin m => FRP.Event GameEvent -> m Entity
+mainMenu rootEv = do
   skin <- unsafeAskUISkin
   elBg <- sprite_ skin.defaultSheet "entry" [C.rSize $ vec2 1024.0 768.0,C.imageSlice0Type] Nothing
   _ <- text skin.defaultFont [C.tText "",C.cColor white,C.rSize $ vec2 400.0 40.0,C.tFontSize 40,C.tPos $ vec3 0.0 180.0 0.0] (Just elBg)
   (eClick /\ elBtn) <- button "" [C.tFontSize 30,C.rSizeVec2 240.0 80.0,C.tPosVec3 0.0 (-200.0) 0.0] (Just elBg)
-  FRP.putEventBox eClick evBox
+  FRP.setNextEvent (eClick $> StartGame) rootEv
   pure elBg
 
 

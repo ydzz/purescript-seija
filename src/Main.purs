@@ -13,10 +13,11 @@ import Effect.Class.Console (error, errorShow)
 import Effect.Console (log)
 import Seija.App (startApp, version)
 import Seija.Component as C
-import Seija.FRP (effectEvent)
-import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
+import Seija.Element (sprite_)
+import Seija.FRP (Event(..), EventType(..), effectEvent, fetchEvent, mergeEvent)
+import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
 import Seija.Simple2D (newEventRoot)
-import Seija.UI.Buildin.Controls (button, checkBox, loadSkin)
+import Seija.UI.Buildin.Controls (button, checkBox, loadSkin, unsafeAskUISkin)
 import SnakeGame (GameRun, defaultTestGame, snakeMain)
 
 
@@ -37,10 +38,17 @@ gameMain = do
   error "Enter GameMain"
   root <- newEventRoot
   loadSkin
+  skin <- unsafeAskUISkin
   (evCheck /\ el) <- checkBox false [] (Just root)
-  effectEvent evCheck errorShow
+  --effectEvent evCheck errorShow
   _  <- button "加一" [C.tPos $ vec3 (80.0) 0.0 0.0]  (Just root)
-  _  <- button "减一" [C.tPos $ vec3 (-80.0) 0.0 0.0] (Just root)
+  --_  <- button "减一" [C.tPos $ vec3 (-80.0) 0.0 0.0] (Just root)
+  --elSpr <- sprite_ skin.defaultSheet "button" [C.rSizeVec2 50.0 50.0] (Just root)
+  --(eStart::Event Entity)  <- fetchEvent elSpr TouchStart false
+  --(eEnd::Event Entity)  <- fetchEvent elSpr TouchEnd false
+  --mEv <-  mergeEvent [eStart $> "button-active",eEnd $> "button"]
+  --effectEvent (eStart $> "fycj") errorShow
+
   pure unit
 
 

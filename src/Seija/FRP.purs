@@ -47,10 +47,10 @@ fetchEvent eid typ isCapture =  do
 effectEvent::forall a m.(MonadEffect m) => Event a -> (a -> Effect Unit) -> m Unit
 effectEvent (Event ev) f = liftEffect $ F.chainEventEffect ev f
 
-mergeEvent::forall a.Array (Event a) -> Effect (Event a)
+mergeEvent::forall a m.MonadEffect m =>  Array (Event a) -> m (Event a)
 mergeEvent events = do
   let rawEvents = map (\(Event re) -> re) events
-  ev <- F._mergeEvent rawEvents
+  ev <- liftEffect $ F._mergeEvent rawEvents
   pure $ Event ev
 
 tagBehavior::forall a b. Behavior a -> Event b -> Effect (Event a)

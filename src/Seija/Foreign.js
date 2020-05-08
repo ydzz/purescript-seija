@@ -135,7 +135,9 @@ exports.getEvent = function(world) {
     return function(evType) {
       return function(isCapture) {
         return function() {
-          return seija.g2d.getEvent(world,eid,evType,isCapture);
+          var newEvent = defaultEvent();
+          seija.g2d.attachNodeEvent(world,eid,evType,isCapture,newEvent);
+          return newEvent;
         }
       }
     }
@@ -152,31 +154,35 @@ exports.chainEventEffect = function(ev) {
     }
   }
 }
+
 exports.chainEvent = function(ev) {
   return function(f) {
       return chainEvent(ev,function(a) {
-        var str = f(a);
-        return str;
+        var val = f(a);
+        return val;
       });
   }
 }
+
 exports._getViewPortSize = function(world) {
   return function() {
       return seija.g2d.getViewPortSize(world);
   }
 }
 
+
 exports._newBehavior = function(val) {
-  return seija.g2d.newBehavior(val);
+  return newBehavior(val);
 }
 
 exports._attachBehavior = function(ev) {
   return function(b) {
     return function() {
-      return seija.g2d.attachBehavior(ev,b);
+      ev.behavoirs.push(b);
     }
   }
 }
+
 
 exports._setBehaviorFoldFunc = function(b) {
   return function(f) {
@@ -189,27 +195,18 @@ exports._setBehaviorFoldFunc = function(b) {
   }
 }
 
+
 exports._getBehaviorValue = function(b) {
-  return seija.g2d.getBehaviorValue(b);
+  return b.value;
 }
+
 
 exports._setBehaviorCallback = function(b) {
   return function(f) {
     return function() {
-      b.callFunc = function(val) {
+      b.callBack = function(val) {
         f(val)();
-      }
-      seija.g2d.setBehaviorCallback(b,b.callFunc);
-    }
-  }
-}
-
-exports._setRect2dBehavior = function(world) {
-  return function(e) {
-    return function(b) {
-      return function() {
-        seija.g2d.setRect2dBehavior(world,e,b);
-      }
+      };
     }
   }
 }
@@ -218,7 +215,18 @@ exports._setTransformBehavior = function(world) {
   return function(e) {
     return function(b) {
       return function() {
-        seija.g2d.setTransformBehavior(world,e,b);
+        setTransformBehavior(world,e,b);
+      }
+    }
+  }
+}
+
+
+exports._setRect2dBehavior = function(world) {
+  return function(e) {
+    return function(b) {
+      return function() {
+        setRect2dBehavior(world,e,b);
       }
     }
   }
@@ -228,17 +236,18 @@ exports._setSpriteRenderBehavior = function(world) {
   return function(e) {
     return function(b) {
       return function() {
-        seija.g2d.setSpriteRenderBehavior(world,e,b);
+        setSpriteRenderBehavior(world,e,b);
       }
     }
   }
 }
 
+
 exports._setTextRenderBehavior = function(world) {
   return function(e) {
     return function(p) {
       return function() {
-        seija.g2d.setTextRenderBehavior(world,e,p);
+        setTextRenderBehavior(world,e,p);
       }
     }
   }
@@ -294,10 +303,11 @@ exports._mergeEvent = function(eventArray) {
 
 exports._mapBehavior = function(behavior) {
   return function(fn) {
-    return seija.g2d.mapBehavior(behavior,fn);
+    return fn(behavior.value);
   }
 }
 
+//do this
 exports._tagBehavior = function(behavior) {
   return function(event) {
     return function() {
@@ -315,7 +325,7 @@ exports._setNextEvent = function(event) {
 }
 
 exports._newEvent = function() {
-  return seija.g2d.newEvent();
+  return defaultEvent();
 }
 
 exports.getChildrens = function(world) {
@@ -341,45 +351,164 @@ exports.unsafeShow = function(val) {
   }
 }
 
-function tagBehavior(b,ev) {
-  var te = seija.g2d.tagBehavior(b,ev);
-  if(ev.childrens == undefined) {
-    ev.childrens = [];
-  }
-  ev.childrens.push(te);
-  return te;
+/*============================================*/
+function defaultEvent() {
+  var retObject = {
+      nextEvents:[],
+      behavoirs:[],
+      tagBehaviors:[],
+      func:null,
+      onFire: function(val) {
+          var newVal = val;
+          if(this.func != null) {
+              newVal = this.func(val);
+          }
+
+          for(var i = 0;i < this.nextEvents.length;i++) {
+              var curEvent = this.nextEvents[i];
+              curEvent.onFire(newVal);
+          }
+
+          for(var i = 0;i < this.behavoirs.length;i++) {
+              var curBehavior = this.behavoirs[i];
+              curBehavior.onValue(newVal);
+          }
+
+          for(var i = 0;i < this.tagBehaviors.length;i++) {
+            var [b,e] = this.tagBehaviors[i];
+            e.onFire(b.value);
+          }
+      }
+  };
+  retObject.onFire.bind(retObject);
+  return retObject;
 }
 
-function chainEvent(event,f) {
-  var newEvent = seija.g2d.chainEvent(event,f);
-  newEvent.f = f;
-  if(event.childrens == undefined) {
-      event.childrens = [];
-  }
-  event.childrens.push(newEvent);
+function chainEvent(ev,fn) {
+  var newEvent = defaultEvent();
+  newEvent.func = fn;
+  ev.nextEvents.push(newEvent);
   return newEvent;
 }
 
 function mergeEvent(eventArray) {
-  var newEvent = seija.g2d.mergeEvent(eventArray);
+  var newEvent = defaultEvent();
   for(var i = 0; i < eventArray.length;i++) {
-    if (eventArray[i].childrens == undefined) {
-      eventArray[i].childrens = [];
-    } 
-    eventArray[i].childrens.push(newEvent);
+    var curEv = eventArray[i];
+    curEv.nextEvents.push(newEvent);
   }
   return newEvent;
 }
 
-function setBehaviorFoldFunc(b,f) {
-  b.myfunc = f;
-  seija.g2d.setBehaviorFoldFunc(b,b.myfunc);
+function setNextEvent(event,nextEvent) {
+  event.nextEvents.push(nextEvent);
 }
 
-function setNextEvent(event,nextEvent) {
-  seija.g2d.setNextEvent(event,nextEvent);
-  if(event.childrens == undefined) {
-      event.childrens = [];
-  }
-  event.childrens.push(nextEvent);
+function tagBehavior(b,ev) {
+  var newEvent = defaultEvent();
+  ev.tagBehaviors.push([b,newEvent]);
+  return newEvent;
 }
+
+
+function newBehavior(val) {
+  var retObject = {
+      value:val,
+      foldFunc:null,
+      callBack:null,
+      attachInfo:null,
+      attchCallback:null,
+      onValue: function(eVal) {
+          if(this.foldFunc != null) {
+              this.value = this.foldFunc(this.value,eVal);
+          } else {
+              this.value = eVal;
+          }
+          if(this.callBack != null) {
+              this.callBack(this.value);
+          }
+          if(this.attchCallback != null) {
+              this.attchCallback(this.value);
+          }
+      }
+  };
+  retObject.onValue.bind(retObject);
+  return retObject;
+}
+
+function setBehaviorFoldFunc(b,f) {
+  b.foldFunc = f;
+}
+
+function setTransformBehavior(world,entity,prop) {
+  if(prop.pos) {
+      prop.pos.attchCallback = function(val) {
+          seija.g2d.setTransform(world,entity,0,val);
+      }.bind(prop.pos);
+  }
+  if(prop.scale) {
+      prop.scale.attchCallback = function(val) {
+        seija.g2d.setTransform(world,entity,1,val);
+      }.bind(prop.scale);
+  }
+  if(prop.rotation) {
+      prop.rotation.attchCallback = function(val) {
+        seija.g2d.setTransform(world,entity,2,val);
+      }.bind(prop.rotation);
+  }
+}
+
+function setRect2dBehavior(world,entity,prop) {
+  if(prop.size) {
+    prop.size.attchCallback = function(val) {
+      seija.g2d.setRect2d(world,entity,0,val);
+    }.bind(prop.size);
+  }
+  if(prop.anchor) {
+    prop.anchor.attchCallback = function(val) {
+      seija.g2d.setRect2d(world,entity,1,val);
+    }.bind(prop.anchor);
+  }
+}
+
+function setSpriteRenderBehavior(world,entity,prop) {
+  if(prop.spriteName) {
+    prop.spriteName.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,1,val);
+    }.bind(prop.spriteName);
+  }
+  if(prop.color) {
+    prop.color.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,0,val);
+    }.bind(prop.color);
+  }
+}
+
+function setTextRenderBehavior(world,entity,prop) {
+  if(prop.text) {
+    prop.text.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,0,val);
+    }.bind(prop.text);
+  }
+  if(prop.fontSize) {
+    prop.fontSize.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,1,val);
+    }.bind(prop.fontSize);
+  }
+  if(prop.color) {
+    prop.color.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,2,val);
+    }.bind(prop.color);
+  }
+  if(prop.anchor) {
+    prop.anchor.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,3,val);
+    }.bind(prop.anchor);
+  }
+  if(prop.lineMode) {
+    prop.lineMode.attchCallback = function(val) {
+      seija.g2d.setSpriteRender(world,entity,4,val);
+    }.bind(prop.lineMode);
+  }
+}
+
