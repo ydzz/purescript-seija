@@ -24,8 +24,8 @@ import SnakeGame (GameRun, defaultTestGame, snakeMain)
 main :: Effect Unit
 main = do
   error version
-  let s2dcfg = default #     (_windowWidth   .~ 1024)
-                         >>> (_windowHeight  .~ 768)
+  let s2dcfg = default #     (_windowWidth   .~ 10)
+                         >>> (_windowHeight  .~ 10)
                          >>> (_windowBgColor .~ (Just whitesmoke))
   testGame <- defaultTestGame 
   startApp s2dcfg testGame snakeMain
@@ -38,7 +38,6 @@ gameMain = do
   error "Enter GameMain"
   root <- newEventRoot
   loadSkin
-  skin <- unsafeAskUISkin
   (evCheck /\ el) <- checkBox false [] (Just root)
   --effectEvent evCheck errorShow
   _  <- button "加一" [C.tPos $ vec3 (80.0) 0.0 0.0]  (Just root)

@@ -70,7 +70,7 @@ snakeMain = do
   (rootEvent::FRP.Event GameEvent) <- FRP.newEvent
   (dGameData::FRP.Dynamic GameData) <- FRP.foldDynamic newGameData rootEvent handleEvent
   
-  (bElement::FRP.Behavior (GameRun Entity)) <- FRP.foldBehavior (mainMenu rootEvent) 
+  (bElement::FRP.Behavior (GameRun Entity)) <- FRP.foldBehavior (gameScene snakeSheet) 
                                                                 (FRP.updated dGameData) 
                                                                 (\a ea -> gameSateToElement ea.state undefined snakeSheet)
   switchElement root bElement
@@ -100,6 +100,12 @@ gameScene::forall m. MonadApp m => MonadSkin m => SpriteSheet ->  m Entity
 gameScene sheet = do
   skin <- unsafeAskUISkin
   elBg <- sprite_ sheet "white" [C.rSizeVec2 1024.0 768.0,C.cColor black] Nothing
-  el0 <- sprite_ sheet "a-0" [C.tScale $ vec3 4.0 4.0 1.0] (Just elBg)
-  el1 <- sprite_ sheet "a-1" [C.tScale $ vec3 4.0 4.0 1.0,C.tPosVec3 32.0 0.0 0.0] (Just elBg)
+  initWall elBg sheet
+  --el0 <- sprite_ sheet "black-ball2" [C.tScale $ vec3 4.0 4.0 1.0] (Just elBg)
+  --el1 <- sprite_ sheet "a-1" [C.tScale $ vec3 4.0 4.0 1.0,C.tPosVec3 32.0 0.0 0.0] (Just elBg)
   pure elBg
+
+initWall::forall m. MonadApp m => MonadSkin m => Entity -> SpriteSheet ->  m Unit
+initWall parent sheet = do
+ 
+  pure unit
