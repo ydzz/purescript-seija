@@ -16,8 +16,9 @@ import Seija.Asset.Texture (Filter(..), SamplerDesc(..), TextureConfig(..), Wrap
 import Seija.Asset.Types (SpriteSheet)
 import Seija.Component as C
 import Seija.Element (sprite_, switchElement, text)
+import Seija.FRP (EventType(..), effectEvent, fetchGlobalEvent)
 import Seija.FRP as FRP
-import Seija.Foreign (Entity)
+import Seija.Foreign (Entity, unsafeShow)
 import Seija.Simple2D (newEventRoot)
 import Seija.UI.Buildin.Controls (class HasUISkin, class MonadSkin, UISkin, button, loadSkin, unsafeAskUISkin)
 
@@ -107,5 +108,9 @@ gameScene sheet = do
 
 initWall::forall m. MonadApp m => MonadSkin m => Entity -> SpriteSheet ->  m Unit
 initWall parent sheet = do
- 
+  --eTime <- fetchTimeEvent parent (Time 0.5)
+  --ePos <- foldBehavior (vec3 0.0 0.0 0.0) eTime (\a ea-> modifyAt d0 (add 8.0) a)
+  --el1 <- sprite_ sheet "a-1" [C.tScale $ vec3 4.0 4.0 1.0,C.tPosB ePos] (Just parent)
+  evKey <- fetchGlobalEvent parent Keyboard
+  effectEvent evKey unsafeShow
   pure unit

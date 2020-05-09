@@ -6,7 +6,7 @@ import Control.Monad.Reader (class MonadAsk, class MonadTrans, ReaderT(..), ask,
 import Data.Maybe (Maybe)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
-import Seija.Foreign (AppConfig(..), Loader, Simple2dConfig, World, appVersion, fetchLoader, newApp, newSimple2d, runApp)
+import Seija.Foreign (AppConfig(..), Simple2dConfig, World, appVersion, newApp, newSimple2d, runApp)
 
 version::String
 version = appVersion

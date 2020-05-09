@@ -148,6 +148,10 @@ foreign import addImageRenderByProp::World -> Int -> Int -> FO.Object PropValue 
 
 foreign import getEvent::World -> Int -> Int -> Boolean -> Effect RawEvent
 
+foreign import _fetchTimeEvent::World -> Int -> Foreign -> Effect RawEvent
+
+foreign import _fetchGlobalEvent::World -> Int -> Int -> Effect RawEvent
+
 foreign import chainEventEffect::forall a. RawEvent -> (a -> Effect Unit) -> Effect Unit
 
 foreign import setParent::World -> Int -> Int -> Effect Unit
@@ -197,6 +201,8 @@ foreign import getChildrens::World -> Entity -> Effect (Array Entity)
 foreign import removeAllChildren::World -> Entity -> Effect Unit
 
 foreign import unsafeShow::forall a. a -> Effect Unit
+
+ 
 
 
 

@@ -3,16 +3,25 @@ module Seija.FRP where
 import Prelude
 
 import Data.Maybe (Maybe(..), fromJust)
+
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Ref as R
+import Foreign (unsafeToForeign)
 import Partial.Unsafe (unsafePartial)
 import Seija.App (class MonadApp, askWorld)
+import Seija.Foreign (class ToFFIJsObject, toJsObject)
 import Seija.Foreign as F
 
 newtype Event a = Event F.RawEvent
 
-data EventType = TouchStart | TouchEnd | Click | MouseMove | MouseEnter | MouseLeave
+data EventType = TouchStart | TouchEnd | Click | MouseMove | MouseEnter | MouseLeave | Keyboard
+
+data UpdateType  = Frame Int | Time Number
+
+instance toFFIJsObjectUpdateType :: ToFFIJsObject UpdateType where
+  toJsObject (Frame n) = unsafeToForeign   [0,n]
+  toJsObject (Time n)  = unsafeToForeign   [unsafeToForeign 1,unsafeToForeign n]
 
 numEventType :: EventType -> Int
 numEventType TouchStart = 0
@@ -21,6 +30,7 @@ numEventType Click      = 2
 numEventType MouseMove  = 3
 numEventType MouseEnter = 4
 numEventType MouseLeave = 5
+numEventType Keyboard   = 6
 
 instance functorEvent :: Functor Event where
   map f (Event ev) = Event $ F.chainEvent ev f
@@ -30,6 +40,28 @@ fetchEventWorld world eid typ isCapture = do
   ev <- F.getEvent world eid (numEventType typ) isCapture
   pure $ Event ev
 
+fetchEvent::forall a m.(MonadApp m) => F.Entity -> EventType -> Boolean -> m (Event a)
+fetchEvent eid typ isCapture =  do
+    world <- askWorld
+    ev <- liftEffect $ F.getEvent world eid (numEventType typ) isCapture
+    pure $ Event ev
+
+fetchTimeEventWorld::forall m. (MonadEffect m)=> F.World -> F.Entity -> UpdateType -> m (Event Unit)
+fetchTimeEventWorld world eid updateType = do 
+  ev <- liftEffect $ F._fetchTimeEvent  world eid (toJsObject updateType)
+  pure $ Event ev
+
+fetchTimeEvent::forall m.(MonadApp m) => F.Entity -> UpdateType -> m (Event Unit)
+fetchTimeEvent eid updateType = askWorld >>= (\w -> fetchTimeEventWorld w eid updateType)
+
+fetchGlobalEventWrold::forall a m. (MonadEffect m) => F.World -> F.Entity -> EventType -> m (Event a)
+fetchGlobalEventWrold  world eid evType = do 
+  ev <- liftEffect $ F._fetchGlobalEvent  world eid (numEventType evType)
+  pure $ Event ev
+
+fetchGlobalEvent::forall m.(MonadApp m) => F.Entity -> EventType -> m (Event Unit)
+fetchGlobalEvent eid evType = askWorld >>= (\w -> fetchGlobalEventWrold w eid evType)
+
 newEvent::forall a m.(MonadEffect m) => m (Event a)
 newEvent = do
   rawEv <- liftEffect $ F._newEvent
@@ -38,11 +70,7 @@ newEvent = do
 setNextEvent::forall a m.MonadEffect m => Event a -> Event a -> m Unit
 setNextEvent (Event a) (Event b) = liftEffect $ F._setNextEvent a b
 
-fetchEvent::forall a m.(MonadApp m) => F.Entity -> EventType -> Boolean -> m (Event a)
-fetchEvent eid typ isCapture =  do
-    world <- askWorld
-    ev <- liftEffect $ F.getEvent world eid (numEventType typ) isCapture
-    pure $ Event ev
+
 
 effectEvent::forall a m.(MonadEffect m) => Event a -> (a -> Effect Unit) -> m Unit
 effectEvent (Event ev) f = liftEffect $ F.chainEventEffect ev f

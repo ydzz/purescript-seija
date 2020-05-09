@@ -144,6 +144,30 @@ exports.getEvent = function(world) {
   }
 }
 
+exports._fetchTimeEvent = function(world) {
+  return function(eid) {
+    return function(prop) {
+      return function() {
+        var newEvent = defaultEvent();
+        seija.g2d.attachTimeEvent(world,eid,prop[0],prop[1],newEvent);
+        return newEvent;
+      }
+    }
+  }
+}
+
+exports._fetchGlobalEvent = function (world) {
+  return function(eid) {
+    return function(typ) {
+      return function() {
+        var newEvent = defaultEvent();
+        seija.g2d.attachGlobalEvent(world,eid,typ,newEvent);
+        return newEvent;
+      }
+    }
+  }
+}
+
 exports.chainEventEffect = function(ev) {
   return function(fn) {
     return function() {

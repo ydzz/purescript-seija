@@ -9,23 +9,21 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Data.Vec (vec3)
 import Effect (Effect)
-import Effect.Class.Console (error, errorShow)
+import Effect.Class.Console (error)
 import Effect.Console (log)
 import Seija.App (startApp, version)
 import Seija.Component as C
-import Seija.Element (sprite_)
-import Seija.FRP (Event(..), EventType(..), effectEvent, fetchEvent, mergeEvent)
-import Seija.Foreign (Entity, _windowBgColor, _windowHeight, _windowWidth)
+import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
 import Seija.Simple2D (newEventRoot)
-import Seija.UI.Buildin.Controls (button, checkBox, loadSkin, unsafeAskUISkin)
+import Seija.UI.Buildin.Controls (button, checkBox, loadSkin)
 import SnakeGame (GameRun, defaultTestGame, snakeMain)
 
 
 main :: Effect Unit
 main = do
   error version
-  let s2dcfg = default #     (_windowWidth   .~ 10)
-                         >>> (_windowHeight  .~ 10)
+  let s2dcfg = default #     (_windowWidth   .~ 1024)
+                         >>> (_windowHeight  .~ 768)
                          >>> (_windowBgColor .~ (Just whitesmoke))
   testGame <- defaultTestGame 
   startApp s2dcfg testGame snakeMain
