@@ -3,7 +3,7 @@ module Seija.FRP where
 import Prelude
 
 import Data.Maybe (Maybe(..), fromJust)
-
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Ref as R
@@ -59,8 +59,8 @@ fetchGlobalEventWrold  world eid evType = do
   ev <- liftEffect $ F._fetchGlobalEvent  world eid (numEventType evType)
   pure $ Event ev
 
-fetchGlobalEvent::forall m.(MonadApp m) => F.Entity -> EventType -> m (Event Unit)
-fetchGlobalEvent eid evType = askWorld >>= (\w -> fetchGlobalEventWrold w eid evType)
+fetchGlobalKeyEvent::forall m.(MonadApp m) => F.Entity -> m (Event (Tuple Int Boolean))
+fetchGlobalKeyEvent eid  = askWorld >>= (\w -> fetchGlobalEventWrold w eid Keyboard)
 
 newEvent::forall a m.(MonadEffect m) => m (Event a)
 newEvent = do
@@ -81,9 +81,9 @@ mergeEvent events = do
   ev <- liftEffect $ F._mergeEvent rawEvents
   pure $ Event ev
 
-tagBehavior::forall a b. Behavior a -> Event b -> Effect (Event a)
+tagBehavior::forall a b m.MonadEffect m => Behavior a -> Event b -> m (Event a)
 tagBehavior (Behavior b) (Event e) = do
-  newEv <- F._tagBehavior b e
+  newEv <- liftEffect $ F._tagBehavior b e
   pure $ Event newEv
 
 

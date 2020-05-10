@@ -91,10 +91,17 @@
         "y":0
       },
       {
-        "width":16,
+        "width":8,
         "height":8,
         "name":"block-0",
         "x":96,
+        "y":0
+      },
+      {
+        "width":8,
+        "height":8,
+        "name":"block-1",
+        "x":104,
         "y":0
       },
       {
@@ -190,28 +197,28 @@
       },
       {
         "height": 8,
-        "name": "dirty-2",
+        "name": "block-2",
         "width": 8,
         "x": 56,
         "y": 16
       },
       {
         "height": 8,
-        "name": "dirty-3",
+        "name": "block-3",
         "width": 8,
         "x": 64,
         "y": 16
       },
       {
         "height": 8,
-        "name": "dirty-4",
+        "name": "block-4",
         "width": 8,
         "x": 72,
         "y": 16
       },
       {
         "height": 8,
-        "name": "dirty-5",
+        "name": "block-5",
         "width": 8,
         "x": 80,
         "y": 16

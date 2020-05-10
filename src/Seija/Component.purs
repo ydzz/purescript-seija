@@ -138,6 +138,9 @@ tPosB = prop Transform true "pos"
 tScale::Vector3f -> Prop
 tScale = prop  Transform false  "scale"
 
+tScaleVec3::Number -> Number -> Number -> Prop
+tScaleVec3 x y z = tScale $ vec3 x y z
+
 tRotate::Vector3f -> Prop
 tRotate = prop Transform false "rotate"
 
@@ -152,6 +155,9 @@ rSizeB = prop  Rect2D true "size"
 
 rAnchor::Vector2f -> Prop
 rAnchor = prop Rect2D false "anchor"
+
+rAnchorVec2::Number -> Number -> Prop
+rAnchorVec2 x y = rAnchor $ vec2 x y
 
 cColor::Color -> Prop
 cColor = prop Common false "color"

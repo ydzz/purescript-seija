@@ -135,7 +135,6 @@ switchElement parent bVal = do
   env <- ask
   world <- askWorld
   effectBehavior bVal (\(GameM bReader) -> do
-                        errorShow "effect"
                         F.removeAllChildren world parent
                         eId <- runReaderT bReader env
                         F.setParent world eId parent

@@ -14,6 +14,7 @@ import Data.Profunctor.Strong (class Strong)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
+import Effect.Class (class MonadEffect)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object as FO
 import Prelude (Unit, map, ($), (<<<))
@@ -200,7 +201,7 @@ foreign import getChildrens::World -> Entity -> Effect (Array Entity)
 
 foreign import removeAllChildren::World -> Entity -> Effect Unit
 
-foreign import unsafeShow::forall a. a -> Effect Unit
+foreign import unsafeShow::forall a m. MonadEffect m => a -> m Unit
 
  
 

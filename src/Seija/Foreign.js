@@ -98,7 +98,7 @@ exports.addRect2DByProp = function (world) {
           sizeW = prop.size[0];
           sizeH = prop.size[1];
         }
-        if(prop.anchorX) {
+        if(prop.anchor) {
           anchorX = prop.anchor[0];
           anchorY = prop.anchor[1];
         }
@@ -161,6 +161,9 @@ exports._fetchGlobalEvent = function (world) {
     return function(typ) {
       return function() {
         var newEvent = defaultEvent();
+        newEvent.func = function(val) {
+          return {value0:val[0],value1:val[1]};
+        };
         seija.g2d.attachGlobalEvent(world,eid,typ,newEvent);
         return newEvent;
       }
