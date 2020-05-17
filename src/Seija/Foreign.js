@@ -80,7 +80,8 @@ exports.addTransformByProp = function (world) {
   return function(eid) {
     return function(prop) {
       return function() {
-        return seija.g2d.addTransform(world,eid,prop.pos,prop.scale,prop.rotate);
+        var b = seija.g2d.addTransform(world,eid,prop.pos,prop.scale,prop.rotate);
+        return b;
       }
     }
   }
@@ -113,7 +114,8 @@ exports.addImageRenderByProp = function(world) {
     return function(texId) {
       return function(prop) {
         return function() {
-          return seija.g2d.addImageRender(world,eid,texId,prop.color);
+          var b = seija.g2d.addImageRender(world,eid,texId,prop.color);
+          return b;
         }
       }
     }
@@ -283,7 +285,8 @@ exports._setTextRenderBehavior = function(world) {
 exports._addTransparent = function(world) {
   return function(e) {
     return function() {
-      seija.g2d.addTransparent(world,e);
+      var b = seija.g2d.addTransparent(world,e);
+      return b;
     }
   }
 }
@@ -294,7 +297,8 @@ exports._addSpriteRenderByProp = function(world) {
       return function(spriteName) {
         return function(prop) {
           return function() {
-            return seija.g2d.addSpriteRender(world,e,sheet,spriteName,prop.type,prop.color);
+            var b = seija.g2d.addSpriteRender(world,e,sheet,spriteName,prop.type,prop.color);
+            return b;
           }
         }
       }
@@ -353,6 +357,54 @@ exports._setNextEvent = function(event) {
 
 exports._newEvent = function() {
   return defaultEvent();
+}
+
+exports._listElement = function (world) {
+  this.cacheList = [];
+  var ref_this  = this;
+  return function (parent) {
+    return function(blist) {
+      return function(f) {
+        return function() {
+            blist.callBack = function(newLst) {
+              var dropList = [];
+              var newList = [];
+              var maxLen = Math.max(ref_this.cacheList.length,newLst.length);
+              for(var i = 0; i < maxLen;i++) {
+                var curOld = null;
+                var curNew = null;
+                if(newLst.length > i) {
+                  curNew = newLst[i];
+                }
+                
+                if(ref_this.cacheList.length > i) {
+                  curOld = ref_this.cacheList[i];
+                }
+                if(curOld == null && curNew != null) {
+                  newList.push(curNew);
+                } else if(curNew == null && curOld != null) {
+                  dropList.push(curOld);
+                } else if (curNew.key != curOld.key) {
+                  newList.push(curNew);
+                  dropList.push(curOld);
+                }
+              }
+              for(var j = 0; j < newList.length;j++) {
+                  var eid = f(newLst[j])();
+                  ref_this.cacheList.push({
+                    data:newList[j],
+                    eid: eid,
+                    key: newList[j].key
+                  });
+              }
+              for(var j = 0; j < dropList.length;j++) {
+                seija.g2d.destoryEntity(world,dropList[j].eid);
+              }
+            };
+        }
+      }
+    }
+  }
 }
 
 exports.getChildrens = function(world) {

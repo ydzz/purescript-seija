@@ -3,7 +3,7 @@ module Seija.FRP where
 import Prelude
 
 import Data.Maybe (Maybe(..), fromJust)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Ref as R

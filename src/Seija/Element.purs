@@ -1,11 +1,11 @@
 module Seija.Element (
   image,sprite,text,spriteB,sprite_,emptyElement,setParent,
-  switchElement
+  switchElement,listElement
 ) where
 
 import Prelude
 
-import Control.Monad.Reader (ask, runReaderT)
+import Control.Monad.Reader (class MonadAsk, class MonadTrans, ask, runReaderT)
 import Data.Array (index)
 import Data.Int (fromNumber)
 import Data.Maybe (Maybe(..), fromJust)
@@ -14,14 +14,13 @@ import Data.Tuple.Nested ((/\))
 import Data.Vec (vec2)
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Effect.Console (errorShow)
 import Foreign.Object as O
 import Partial.Unsafe (unsafePartial)
-import Seija.App (class MonadApp, GameM(..), askWorld)
+import Seija.App (class MonadApp, GameEnv, GameM(..), askWorld)
 import Seija.Asset (getSpirteRectInfo, getTextureSizeWorld)
 import Seija.Asset.Types (Font(..), SpriteSheet(..), Texture(..))
 import Seija.Component as C
-import Seija.FRP (Behavior, effectBehavior, unsafeBehaviorValue)
+import Seija.FRP (Behavior(..), effectBehavior, unsafeBehaviorValue)
 import Seija.Foreign as F
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -134,10 +133,21 @@ switchElement parent bVal = do
   setParent eid parent
   env <- ask
   world <- askWorld
+  
   effectBehavior bVal (\(GameM bReader) -> do
                         F.removeAllChildren world parent
                         eId <- runReaderT bReader env
                         F.setParent world eId parent
                         pure unit
                       )
+  pure unit
+
+listElement::forall a r. F.Entity -> Behavior (Array a) -> (a -> GameM r Effect F.Entity) ->  GameM r Effect Unit
+listElement parent (Behavior bList) f = do
+  (env::GameEnv r) <- ask
+  world <- askWorld
+  _ <- liftEffect $ F._listElement world parent bList (\val -> do
+                                                    let (GameM reader) = f val
+                                                    runReaderT reader env
+                                                )
   pure unit
