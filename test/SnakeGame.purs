@@ -1,8 +1,8 @@
-module SnakeGame where
+module Test.SnakeGame where
 
 import Prelude
 
-import Color (black, rgba', white)
+import Color (black, white)
 import Data.Array (fromFoldable, (..))
 import Data.Int (toNumber)
 import Data.List ((:))
@@ -14,7 +14,7 @@ import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (d0, d1)
 import Data.Vec (modifyAt, vec2, vec3)
 import Effect (Effect)
-import Effect.Class.Console (errorShow)
+
 import Effect.Ref as R
 import Partial.Unsafe (unsafePartial)
 import Seija.App (class IGame, class MonadApp, GameM)
@@ -24,9 +24,9 @@ import Seija.Asset.Texture (Filter(..), SamplerDesc(..), TextureConfig(..), Wrap
 import Seija.Asset.Types (SpriteSheet)
 import Seija.Component as C
 import Seija.Element (listElement, spriteB, sprite_, switchElement, text)
-import Seija.FRP (Behavior, Event, UpdateType(..), effectBehavior, fetchGlobalKeyEvent, fetchTimeEvent, foldBehavior, holdBehavior, tagBehavior)
+import Seija.FRP (Behavior, Event, UpdateType(..), fetchGlobalKeyEvent, fetchTimeEvent, foldBehavior, holdBehavior, tagBehavior)
 import Seija.FRP as FRP
-import Seija.Foreign (Entity, unsafeShow)
+import Seija.Foreign (Entity)
 import Seija.Math.Vector (Vector3f)
 import Seija.Simple2D (newEventRoot)
 import Seija.UI.Buildin.Controls (class HasUISkin, class MonadSkin, UISkin, button, loadSkin, unsafeAskUISkin)

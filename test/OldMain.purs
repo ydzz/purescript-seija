@@ -1,4 +1,4 @@
-module Main where
+module Test.OldMain where
 
 import Prelude
 
@@ -16,7 +16,7 @@ import Seija.Component as C
 import Seija.Foreign (_windowBgColor, _windowHeight, _windowWidth)
 import Seija.Simple2D (newEventRoot)
 import Seija.UI.Buildin.Controls (button, checkBox, loadSkin)
-import SnakeGame (GameRun, defaultTestGame, snakeMain)
+import Test.SnakeGame (GameRun, defaultTestGame, snakeMain)
 
 
 main :: Effect Unit
