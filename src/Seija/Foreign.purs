@@ -25,7 +25,8 @@ class ToFFIJsObject a where
 type WindowConfigRecord = {
     width::Int,
     height::Int,
-    bgColor:: Maybe Color
+    bgColor:: Maybe Color,
+    title::String
 }
 
 newtype WindowConfig = WindowConfig WindowConfigRecord
@@ -37,7 +38,8 @@ instance defaultWindowConfig :: Default WindowConfig where
     default = WindowConfig {
         width : 1024,
         height: 768,
-        bgColor: Just darkgray
+        bgColor: Just darkgray,
+        title: "Winodw"
     }
 
 toForeign:: forall a. a -> Foreign
@@ -48,7 +50,8 @@ instance toJsOjectWindowConfig :: ToFFIJsObject WindowConfig where
     toJsObject (WindowConfig cfg) = unsafeToForeign arr
       where
         arr = FO.fromFoldable $ ["width"  /\ toForeign cfg.width,
-                                 "height" /\ toForeign cfg.height] <> color
+                                 "height" /\ toForeign cfg.height,
+                                 "title" /\ toForeign cfg.title] <> color
         color::Array (Tuple String Foreign)
         color = maybeToList $ map  ((Tuple "bgColor") <<< toForeign <<< toNumberArray) cfg.bgColor
 
@@ -76,6 +79,8 @@ _window = lens (\(Simple2dConfig {window}) -> window) (\(Simple2dConfig r) value
 _bgColor :: forall a. Strong a => a (Maybe Color) (Maybe Color) -> a WindowConfig WindowConfig
 _bgColor = lens (\(WindowConfig r) -> r.bgColor) (\(WindowConfig r) value -> WindowConfig (r {bgColor = value}))
 
+_title :: forall a. Strong a => a String String -> a WindowConfig WindowConfig
+_title = lens (\(WindowConfig r) -> r.title) (\(WindowConfig r) title -> WindowConfig (r {title = title}))
 
 _width :: forall a. Strong a => a Int Int -> a WindowConfig WindowConfig
 _width = lens (\(WindowConfig r) -> r.width) (\(WindowConfig r) value -> WindowConfig (r {width = value}))
@@ -92,6 +97,9 @@ _windowWidth =  _window <<< _width
 
 _windowHeight :: forall a. Strong a => a Int Int -> a Simple2dConfig Simple2dConfig
 _windowHeight =  _window <<< _height
+
+_windowTitle :: forall a. Strong a => a String String -> a Simple2dConfig Simple2dConfig
+_windowTitle =  _window <<< _title
 
 newtype AppConfig = AppConfig {
     onStart::  (World -> Effect Unit),
@@ -181,6 +189,8 @@ foreign import _setTextRenderBehavior::World -> Entity -> FO.Object PropValue ->
 
 foreign import _addTransparent::World -> Entity -> Effect Unit
 
+foreign import _addScreenScaler::World -> Entity -> Int -> Number -> Effect Boolean
+
 foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Object PropValue -> Effect Unit
 
 foreign import _getSpriteRectInfo::World -> Int -> String -> Array Number
@@ -204,6 +214,7 @@ foreign import getChildrens::World -> Entity -> Effect (Array Entity)
 foreign import removeAllChildren::World -> Entity -> Effect Unit
 
 foreign import unsafeShow::forall a m. MonadEffect m => a -> m Unit
+
 
  
 

@@ -5,7 +5,7 @@ module Seija.Element (
 
 import Prelude
 
-import Control.Monad.Reader (class MonadAsk, class MonadTrans, ask, runReaderT)
+import Control.Monad.Reader (ask, runReaderT)
 import Data.Array (index)
 import Data.Int (fromNumber)
 import Data.Maybe (Maybe(..), fromJust)

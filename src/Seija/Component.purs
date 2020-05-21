@@ -11,9 +11,12 @@ import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (D2, D3)
 import Data.Vec (Vec, toArray, vec2, vec3)
 import Effect (Effect)
+import Effect.Class (liftEffect)
 import Foreign.Object as O
+import Seija.App (class MonadApp, askWorld)
 import Seija.FRP (Behavior(..))
 import Seija.Foreign (Entity, PropValue, World, _getBehaviorValue, _setRect2dBehavior, _setSpriteRenderBehavior, _setTextRenderBehavior, _setTransformBehavior)
+import Seija.Foreign as F
 import Seija.Math.Vector (Vector3f, Vector2f)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -210,4 +213,14 @@ hasProp::Array Prop -> (Prop -> Boolean) -> Boolean
 hasProp arr f = isJust $ find f arr
 
 hasPropByName :: Array Prop -> String -> Boolean
-hasPropByName arr attrName = hasProp arr (\(Prop _ _ name _) -> name == "size") 
+hasPropByName arr attrName = hasProp arr (\(Prop _ _ name _) -> name == "size")
+
+
+data ScreenScale = ScaleWithWidth Number | ScaleWithHeight Number
+
+addSreenScaler::forall m.(MonadApp m) => Entity -> ScreenScale -> m Boolean
+addSreenScaler entity typ = do
+  world <- askWorld
+  case typ of
+   ScaleWithWidth  num -> liftEffect $ F._addScreenScaler world entity 0 num
+   ScaleWithHeight num -> liftEffect $ F._addScreenScaler world entity 1 num

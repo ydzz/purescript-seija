@@ -122,6 +122,18 @@ exports.addImageRenderByProp = function(world) {
   }
 }
 
+exports._addScreenScaler = function(world) {
+  return function(eid) {
+    return function(typ) {
+      return function(num) {
+        return function() {
+          return seija.g2d.addScreenScaler(world,eid,typ,num);
+        }
+      }
+    }
+  }
+}
+
 exports.setParent = function(world) {
   return function(eid) {
     return function(pid) {
