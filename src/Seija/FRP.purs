@@ -70,7 +70,10 @@ newEvent = do
 setNextEvent::forall a m.MonadEffect m => Event a -> Event a -> m Unit
 setNextEvent (Event a) (Event b) = liftEffect $ F._setNextEvent a b
 
-
+gateEvent::forall a m. MonadEffect m => Event a -> (a -> Boolean) -> m (Event a)
+gateEvent (Event ev) f = liftEffect do 
+                          newEv <- F._gateEvent ev f
+                          pure $ Event newEv
 
 effectEvent::forall a m.(MonadEffect m) => Event a -> (a -> Effect Unit) -> m Unit
 effectEvent (Event ev) f = liftEffect $ F.chainEventEffect ev f

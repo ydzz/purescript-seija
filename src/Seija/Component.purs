@@ -6,18 +6,19 @@ import Color (Color)
 import Data.Array (filter, find, length)
 import Data.ColorEx (toNumberArray)
 import Data.Int (toNumber)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Tuple.Nested ((/\))
 import Data.Typelevel.Num (D2, D3)
 import Data.Vec (Vec, toArray, vec2, vec3)
 import Effect (Effect)
 import Effect.Class (liftEffect)
+import Foreign (unsafeToForeign)
 import Foreign.Object as O
 import Seija.App (class MonadApp, askWorld)
 import Seija.FRP (Behavior(..))
-import Seija.Foreign (Entity, PropValue, World, _getBehaviorValue, _setRect2dBehavior, _setSpriteRenderBehavior, _setTextRenderBehavior, _setTransformBehavior)
+import Seija.Foreign (class ToFFIJsObject, Entity, PropValue, World, _getBehaviorValue, _setRect2dBehavior, _setSpriteRenderBehavior, _setTextRenderBehavior, _setTransformBehavior, toJsObject)
 import Seija.Foreign as F
-import Seija.Math.Vector (Vector3f, Vector2f)
+import Seija.Math.Vector (Vector2f, Vector3f, Vector4f)
 import Unsafe.Coerce (unsafeCoerce)
 
 data ComponentType = Transform | Rect2D | ImageRender | SpriteRender | CABEventRoot | TextRender | Common
@@ -224,3 +225,26 @@ addSreenScaler entity typ = do
   case typ of
    ScaleWithWidth  num -> liftEffect $ F._addScreenScaler world entity 0 num
    ScaleWithHeight num -> liftEffect $ F._addScreenScaler world entity 1 num
+
+data HorizontalAlign = LHLeft | LHCenter | LHRight | LHStretch
+
+data VerticalAlign = LVTop | LVCenter | LVBottom | LVStretch
+
+instance toFFIJsHorizontalAlign :: ToFFIJsObject HorizontalAlign where
+  toJsObject LHLeft     = unsafeToForeign 0
+  toJsObject LHCenter   = unsafeToForeign 1
+  toJsObject LHRight    = unsafeToForeign 2
+  toJsObject LHStretch  = unsafeToForeign 3
+
+instance toFFIJsVerticalAlign :: ToFFIJsObject VerticalAlign where
+  toJsObject LVTop      = unsafeToForeign 0
+  toJsObject LVCenter   = unsafeToForeign 1
+  toJsObject LVBottom   = unsafeToForeign 2
+  toJsObject LVStretch  = unsafeToForeign 3
+
+addBaseLayout::forall m.MonadApp m => Entity -> HorizontalAlign -> VerticalAlign -> Maybe Vector4f -> Maybe Vector4f -> m Boolean
+addBaseLayout eid hor ver mayMargin mayPadding = do
+  world <- askWorld
+  let margin  = maybe (unsafeToForeign 0) (unsafeToForeign <<< toArray) mayMargin
+  let padding = maybe (unsafeToForeign 0) (unsafeToForeign <<< toArray)  mayPadding
+  liftEffect $ F._addBaseLayout world eid (toJsObject hor) (toJsObject ver) margin padding

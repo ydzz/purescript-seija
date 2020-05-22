@@ -191,6 +191,8 @@ foreign import _addTransparent::World -> Entity -> Effect Unit
 
 foreign import _addScreenScaler::World -> Entity -> Int -> Number -> Effect Boolean
 
+foreign import _addBaseLayout::World -> Entity -> Foreign -> Foreign -> Foreign -> Foreign -> Effect Boolean
+
 foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Object PropValue -> Effect Unit
 
 foreign import _getSpriteRectInfo::World -> Int -> String -> Array Number
@@ -208,6 +210,8 @@ foreign import _tagBehavior::RawBehavior -> RawEvent -> Effect RawEvent
 foreign import _newEvent::Effect RawEvent
 
 foreign import _setNextEvent::RawEvent -> RawEvent -> Effect Unit
+
+foreign import _gateEvent::forall a. RawEvent -> (a -> Boolean) -> Effect RawEvent
 
 foreign import getChildrens::World -> Entity -> Effect (Array Entity)
 

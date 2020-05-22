@@ -134,6 +134,22 @@ exports._addScreenScaler = function(world) {
   }
 }
 
+exports._addBaseLayout = function(world) {
+  return function(eid) {
+    return function(ht) {
+      return function(vt) {
+        return function(margin) {
+          return function(padding) {
+            return function() {
+              return seija.g2d.addBaseLayout(world,eid,ht,vt,margin,padding);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 exports.setParent = function(world) {
   return function(eid) {
     return function(pid) {
@@ -367,6 +383,17 @@ exports._setNextEvent = function(event) {
   }
 }
 
+exports._gateEvent = function (event) {
+  return function(f) {
+    return function() {
+      var newEvent = defaultEvent();
+      event.gateFunc = f;
+      setNextEvent(event,newEvent);
+      return newEvent;
+    }
+  }
+}
+
 exports._newEvent = function() {
   return defaultEvent();
 }
@@ -449,12 +476,15 @@ function defaultEvent() {
       behavoirs:[],
       tagBehaviors:[],
       func:null,
+      gateFunc:null,
       onFire: function(val) {
           var newVal = val;
           if(this.func != null) {
               newVal = this.func(val);
           }
-
+          if(this.gateFunc != null && this.gateFunc(newVal) == false) {
+            return;
+          }
           for(var i = 0;i < this.nextEvents.length;i++) {
               var curEvent = this.nextEvents[i];
               curEvent.onFire(newVal);

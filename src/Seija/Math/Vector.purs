@@ -1,6 +1,6 @@
 module Seija.Math.Vector  where
 
-import Data.Typelevel.Num (D2, D3)
+import Data.Typelevel.Num (D2, D3, D4)
 import Data.Vec (Vec, vec2, vec3)
 
 type Vector3 a = Vec D3 a
@@ -10,6 +10,10 @@ type Vector3f = Vector3 Number
 type Vector2 a = Vec D2 a
 
 type Vector2f = Vector2 Number
+
+type Vector4 a = Vec D4 a
+
+type Vector4f = Vector4 Number
 
 zeroVec3::Vector3f
 zeroVec3 = vec3 0.0 0.0 0.0
