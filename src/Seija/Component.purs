@@ -248,3 +248,14 @@ addBaseLayout eid hor ver mayMargin mayPadding = do
   let margin  = maybe (unsafeToForeign 0) (unsafeToForeign <<< toArray) mayMargin
   let padding = maybe (unsafeToForeign 0) (unsafeToForeign <<< toArray)  mayPadding
   liftEffect $ F._addBaseLayout world eid (toJsObject hor) (toJsObject ver) margin padding
+
+data Orientation = Horizontal | Vertical
+
+instance toFFIJsOrientation :: ToFFIJsObject Orientation where
+  toJsObject Horizontal = unsafeToForeign 0
+  toJsObject Vertical   = unsafeToForeign 1
+
+addStackPanel::forall m.MonadApp m => Entity -> Orientation -> Number -> m Boolean
+addStackPanel eid ori spec = do
+  world <- askWorld
+  liftEffect $ F._addStackPanel world eid (toJsObject ori) spec

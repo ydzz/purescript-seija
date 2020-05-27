@@ -167,6 +167,8 @@ foreign import setParent::World -> Int -> Int -> Effect Unit
 
 foreign import chainEvent::forall a b. RawEvent -> (a -> b) -> RawEvent
 
+foreign import chainBehavior::forall a b. RawBehavior -> (a -> b) -> RawBehavior
+
 foreign import _getViewPortSize::World -> Effect (Array Number)
 
 foreign import _newBehavior::forall a. a -> RawBehavior
@@ -193,6 +195,8 @@ foreign import _addScreenScaler::World -> Entity -> Int -> Number -> Effect Bool
 
 foreign import _addBaseLayout::World -> Entity -> Foreign -> Foreign -> Foreign -> Foreign -> Effect Boolean
 
+foreign import _addStackPanel::World -> Entity -> Foreign -> Number -> Effect Boolean
+
 foreign import _addSpriteRenderByProp::World -> Entity -> Int -> String -> FO.Object PropValue -> Effect Unit
 
 foreign import _getSpriteRectInfo::World -> Int -> String -> Array Number
@@ -203,7 +207,7 @@ foreign import _mergeEvent::Array RawEvent -> Effect RawEvent
 
 foreign import _listElement::forall a. World -> Entity -> RawBehavior -> (a -> Effect Entity) -> Effect Unit
 
-foreign import _mapBehavior::forall a b. RawBehavior -> (a -> b) -> RawBehavior
+--foreign import _mapBehavior::forall a b. RawBehavior -> (a -> b) -> RawBehavior
 
 foreign import _tagBehavior::RawBehavior -> RawEvent -> Effect RawEvent
 

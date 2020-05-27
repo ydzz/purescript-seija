@@ -150,6 +150,18 @@ exports._addBaseLayout = function(world) {
   }
 }
 
+exports._addStackPanel = function(world) {
+  return function(eid) {
+    return function(ori) {
+      return function(spec) {
+        return function() {
+          return seija.g2d.addStackPanel(world,eid,ori,spec);
+        }
+      }
+    }
+  }
+}
+
 exports.setParent = function(world) {
   return function(eid) {
     return function(pid) {
@@ -215,6 +227,15 @@ exports.chainEventEffect = function(ev) {
 exports.chainEvent = function(ev) {
   return function(f) {
       return chainEvent(ev,function(a) {
+        var val = f(a);
+        return val;
+      });
+  }
+}
+
+exports.chainBehavior = function(b) {
+  return function(f) {
+      return chainBehavior(b,function(a) {
         var val = f(a);
         return val;
       });
@@ -360,11 +381,11 @@ exports._mergeEvent = function(eventArray) {
   }
 }
 
-exports._mapBehavior = function(behavior) {
-  return function(fn) {
-    return fn(behavior.value);
-  }
-}
+//exports._mapBehavior = function(behavior) {
+//  return function(fn) {
+//    return fn(behavior.value);
+// }
+//}
 
 //do this
 exports._tagBehavior = function(behavior) {
@@ -512,6 +533,14 @@ function chainEvent(ev,fn) {
   return newEvent;
 }
 
+function chainBehavior(b,mapfn) {
+  var val = mapfn(b.value);
+  var newBVal = newBehavior(val);
+  newBVal.mapFunc = mapfn;
+  b.nextBehaviors.push(newBVal);
+  return newBVal;
+}
+
 function mergeEvent(eventArray) {
   var newEvent = defaultEvent();
   for(var i = 0; i < eventArray.length;i++) {
@@ -536,9 +565,11 @@ function newBehavior(val) {
   var retObject = {
       value:val,
       foldFunc:null,
+      mapFunc:null,
       callBack:null,
       attachInfo:null,
       attchCallback:null,
+      nextBehaviors:[],
       onValue: function(eVal) {
           if(this.foldFunc != null) {
               this.value = this.foldFunc(this.value,eVal);
@@ -551,9 +582,27 @@ function newBehavior(val) {
           if(this.attchCallback != null) {
               this.attchCallback(this.value);
           }
+          for(var i = 0;i < this.nextBehaviors.length;i++) {
+            this.nextBehaviors[i].onMapValue(this.value);
+          }
+      },
+      onMapValue: function(val) {
+        if(this.mapFunc != null) {
+          this.value = this.mapFunc(val);
+        }
+        if(this.callBack != null) {
+          this.callBack(this.value);
+        }
+        if(this.attchCallback != null) {
+          this.attchCallback(this.value);
+        }
+        for(var i = 0;i < this.nextBehaviors.length;i++) {
+          this.nextBehaviors[i].onMapValue(this.value);
+        }
       }
   };
   retObject.onValue.bind(retObject);
+  retObject.onMapValue.bind(retObject);
   return retObject;
 }
 

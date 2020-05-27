@@ -2,13 +2,11 @@ module Seija.FRP where
 
 import Prelude
 
-import Data.Maybe (Maybe(..), fromJust)
 import Data.Tuple (Tuple)
+import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Ref as R
 import Foreign (unsafeToForeign)
-import Partial.Unsafe (unsafePartial)
 import Seija.App (class MonadApp, askWorld)
 import Seija.Foreign (class ToFFIJsObject, toJsObject)
 import Seija.Foreign as F
@@ -34,6 +32,9 @@ numEventType Keyboard   = 6
 
 instance functorEvent :: Functor Event where
   map f (Event ev) = Event $ F.chainEvent ev f
+
+instance functorBehavior :: Functor Behavior where
+  map f (Behavior b) = Behavior $ F.chainBehavior b f
 
 fetchEventWorld::forall a. F.World -> F.Entity -> EventType -> Boolean -> Effect (Event a)
 fetchEventWorld world eid typ isCapture = do
@@ -91,9 +92,6 @@ tagBehavior (Behavior b) (Event e) = do
 
 
 newtype Behavior a = Behavior F.RawBehavior
-
-instance functorBehavior :: Functor Behavior where
-  map f (Behavior b) = Behavior $ F._mapBehavior b f
 
 newBehavior::forall a. a -> Behavior a
 newBehavior val = Behavior $ F._newBehavior val
@@ -156,21 +154,8 @@ updated::forall a.Dynamic a -> Event a
 updated (Dynamic d) = d.event
 
 
-newtype EventBox a = EventBox {
-  value:: R.Ref (Maybe (Event a))
-}
-
-newEventBox:: forall m a.MonadEffect m => m (EventBox a)
-newEventBox = do
-  ref <- liftEffect $ R.new Nothing
-  pure $ EventBox {value:ref }
-
-putEventBox::forall a m. MonadEffect m => Event a -> EventBox a -> m Unit 
-putEventBox val (EventBox box) = liftEffect $ R.write (Just val) box.value
- 
-
-unsafeUnEventBox::forall a m. MonadEffect m => EventBox a -> m (Event a)
-unsafeUnEventBox (EventBox box) = do
-  val <- liftEffect $ R.read box.value
-  liftEffect $ R.write Nothing box.value
-  pure $ unsafePartial $ fromJust val
+reducer::forall d e m.MonadEffect m => d -> (d -> e -> d) -> m (Tuple (Event e) (Behavior d))
+reducer d fn = do 
+  (root::Event e) <- newEvent
+  behavior <- foldBehavior d root fn
+  pure $ root /\ behavior
