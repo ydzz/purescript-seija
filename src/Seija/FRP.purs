@@ -1,7 +1,5 @@
 module Seija.FRP where
-
 import Prelude
-
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
@@ -159,3 +157,11 @@ reducer d fn = do
   (root::Event e) <- newEvent
   behavior <- foldBehavior d root fn
   pure $ root /\ behavior
+
+reducer2::forall d c e m.MonadEffect m => d -> (d -> e -> Tuple d c) -> m (Tuple (Event e) (Behavior d))
+reducer2 d fn = do
+  (root::Event e) <- newEvent
+  let (Event rawEv) = root
+  rb /\ re <- liftEffect $ F._reducerBehavior rawEv d fn
+  setNextEvent (Event re)  root
+  pure $ root /\ Behavior rb

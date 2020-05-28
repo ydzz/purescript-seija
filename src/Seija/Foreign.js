@@ -273,11 +273,22 @@ exports._setBehaviorFoldFunc = function(b) {
   }
 }
 
+exports._reducerBehavior = function(e) {
+  return function(defaultVal) {
+    return function(f) {
+      return function() {
+        reducerBehavior(e,defaultVal,function(val,ev) {
+          var retVal = f(val)(ev);
+          return retVal;
+        });
+      }
+    }
+  }
+}
 
 exports._getBehaviorValue = function(b) {
   return b.value;
 }
-
 
 exports._setBehaviorCallback = function(b) {
   return function(f) {
@@ -541,6 +552,15 @@ function chainBehavior(b,mapfn) {
   return newBVal;
 }
 
+
+function reducerBehavior(e,defaultVal,f) {
+  var b = newBehavior(defaultVal);
+  b.reducerFunc = f;
+  b.reduerEvent = defaultEvent();
+  e.nextBehaviors.push(b);
+  return {value0 :b , value1: b.reduerEvent};
+}
+
 function mergeEvent(eventArray) {
   var newEvent = defaultEvent();
   for(var i = 0; i < eventArray.length;i++) {
@@ -561,10 +581,13 @@ function tagBehavior(b,ev) {
 }
 
 
+
 function newBehavior(val) {
   var retObject = {
       value:val,
       foldFunc:null,
+      reducerFunc:null,
+      reduerEvent:null,
       mapFunc:null,
       callBack:null,
       attachInfo:null,
@@ -573,6 +596,13 @@ function newBehavior(val) {
       onValue: function(eVal) {
           if(this.foldFunc != null) {
               this.value = this.foldFunc(this.value,eVal);
+          } 
+          else if(this.reducerFunc != null) {
+            var retValue = this.reducerFunc(this.value,eVal);
+            if(this.reduerEvent != null) {
+              this.reduerEvent.onFire(retValue.value1);
+            }
+            this.value = retValue.value0;
           } else {
               this.value = eVal;
           }
