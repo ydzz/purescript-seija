@@ -9,6 +9,8 @@
   , "profunctor-lenses"
   , "psci-support"
   , "argonaut-core"
+  , "nullable"
+  , "aff"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

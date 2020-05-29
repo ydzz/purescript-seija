@@ -275,12 +275,16 @@ exports._setBehaviorFoldFunc = function(b) {
 
 exports._reducerBehavior = function(e) {
   return function(defaultVal) {
-    return function(f) {
-      return function() {
-        reducerBehavior(e,defaultVal,function(val,ev) {
-          var retVal = f(val)(ev);
-          return retVal;
-        });
+    return function(updatef) {
+      return function(effectf) {
+        return function() {
+          reducer(e,defaultVal,function(val,ev) {
+            var retVal = updatef(val)(ev);
+            return retVal;
+          } ,function(cmd,call) {
+            return effectf(cmd)(call)();
+          });
+        }
       }
     }
   }
@@ -552,15 +556,6 @@ function chainBehavior(b,mapfn) {
   return newBVal;
 }
 
-
-function reducerBehavior(e,defaultVal,f) {
-  var b = newBehavior(defaultVal);
-  b.reducerFunc = f;
-  b.reduerEvent = defaultEvent();
-  e.nextBehaviors.push(b);
-  return {value0 :b , value1: b.reduerEvent};
-}
-
 function mergeEvent(eventArray) {
   var newEvent = defaultEvent();
   for(var i = 0; i < eventArray.length;i++) {
@@ -580,27 +575,41 @@ function tagBehavior(b,ev) {
   return newEvent;
 }
 
+function reducer(e,defaultVal,updatef,effectf) {
+  var b = newBehavior(defaultVal);
+  b.reducerFunc = updatef;
+  b.effectEvent = e;
+  b.reduerEffectFunc = effectf;
+  e.behavoirs.push(b);
+  return b;
+}
+
 
 
 function newBehavior(val) {
   var retObject = {
       value:val,
       foldFunc:null,
-      reducerFunc:null,
-      reduerEvent:null,
       mapFunc:null,
       callBack:null,
       attachInfo:null,
       attchCallback:null,
       nextBehaviors:[],
+      //reducer
+      reducerFunc:null,
+      reduerEffectFunc:null,
+      effectEvent:null,
       onValue: function(eVal) {
           if(this.foldFunc != null) {
               this.value = this.foldFunc(this.value,eVal);
           } 
           else if(this.reducerFunc != null) {
             var retValue = this.reducerFunc(this.value,eVal);
-            if(this.reduerEvent != null) {
-              this.reduerEvent.onFire(retValue.value1);
+            if(retValue.value1 != null) {
+               var cur_this = this;
+               this.reduerEffectFunc(retValue.value1,function(val) {
+                cur_this.effectEvent.onFire(val);
+               });
             }
             this.value = retValue.value0;
           } else {

@@ -1,8 +1,12 @@
 module Seija.FRP where
+
 import Prelude
+
+import Data.Nullable (Nullable)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
+import Effect.Aff (Aff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign (unsafeToForeign)
 import Seija.App (class MonadApp, askWorld)
@@ -153,15 +157,19 @@ updated (Dynamic d) = d.event
 
 
 reducer::forall d e m.MonadEffect m => d -> (d -> e -> d) -> m (Tuple (Event e) (Behavior d))
-reducer d fn = do 
+reducer d fn = do
   (root::Event e) <- newEvent
   behavior <- foldBehavior d root fn
   pure $ root /\ behavior
 
-reducer2::forall d c e m.MonadEffect m => d -> (d -> e -> Tuple d c) -> m (Tuple (Event e) (Behavior d))
-reducer2 d fn = do
+reducerEff::forall d c e m.MonadEffect m => d -> (d -> e -> Tuple d (Nullable c)) -> (c -> (e -> Effect Unit) -> Effect Unit) -> m (Tuple (Event e) (Behavior d))
+reducerEff d updateFn effectFn = do
   (root::Event e) <- newEvent
   let (Event rawEv) = root
-  rb /\ re <- liftEffect $ F._reducerBehavior rawEv d fn
-  setNextEvent (Event re)  root
-  pure $ root /\ Behavior rb
+  retB <- liftEffect $ F._reducerBehavior rawEv d updateFn effectFn
+  pure $ root /\ Behavior retB
+
+reducerAff::Aff Unit
+reducerAff = do
+  
+  pure unit

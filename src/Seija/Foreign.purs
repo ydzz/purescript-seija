@@ -10,6 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.MaybeEx (maybeToList)
 import Data.Monoid ((<>))
 import Data.Newtype (class Newtype)
+import Data.Nullable (Nullable)
 import Data.Profunctor.Strong (class Strong)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
@@ -177,7 +178,7 @@ foreign import _attachBehavior::RawEvent -> RawBehavior -> Effect Unit
 
 foreign import _setBehaviorFoldFunc::forall a b. RawBehavior -> (a -> b -> a) -> Effect Unit
 
-foreign import _reducerBehavior::forall d e c. RawEvent -> d -> (d -> e -> Tuple d c) -> Effect (Tuple RawBehavior RawEvent)
+foreign import _reducerBehavior::forall d e c. RawEvent -> d -> (d -> e -> Tuple d (Nullable c)) -> (c -> (e -> Effect Unit) -> Effect Unit) -> Effect RawBehavior
 
 foreign import _getBehaviorValue::forall a. RawBehavior -> a
 
