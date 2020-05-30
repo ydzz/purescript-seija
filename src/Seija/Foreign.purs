@@ -178,7 +178,7 @@ foreign import _attachBehavior::RawEvent -> RawBehavior -> Effect Unit
 
 foreign import _setBehaviorFoldFunc::forall a b. RawBehavior -> (a -> b -> a) -> Effect Unit
 
-foreign import _reducerBehavior::forall d e c. RawEvent -> d -> (d -> e -> Tuple d (Nullable c)) -> (c -> (e -> Effect Unit) -> Effect Unit) -> Effect RawBehavior
+foreign import _reducerBehavior::forall d e c. RawEvent -> d -> (d -> e -> Tuple d (Nullable c)) -> Nullable (c -> (e -> Effect Unit) -> Effect Unit) -> Effect RawBehavior
 
 foreign import _getBehaviorValue::forall a. RawBehavior -> a
 

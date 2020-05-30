@@ -6,7 +6,6 @@ import Data.Nullable (Nullable)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Aff (Aff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign (unsafeToForeign)
 import Seija.App (class MonadApp, askWorld)
@@ -162,14 +161,16 @@ reducer d fn = do
   behavior <- foldBehavior d root fn
   pure $ root /\ behavior
 
-reducerEff::forall d c e m.MonadEffect m => d -> (d -> e -> Tuple d (Nullable c)) -> (c -> (e -> Effect Unit) -> Effect Unit) -> m (Tuple (Event e) (Behavior d))
+reducerEff::forall d c e m.MonadEffect m => d -> (d -> e -> Tuple d (Nullable c)) -> Nullable (c -> (e -> Effect Unit) -> Effect Unit) -> m (Tuple (Event e) (Behavior d))
 reducerEff d updateFn effectFn = do
   (root::Event e) <- newEvent
   let (Event rawEv) = root
   retB <- liftEffect $ F._reducerBehavior rawEv d updateFn effectFn
   pure $ root /\ Behavior retB
 
+
+{-
 reducerAff::Aff Unit
 reducerAff = do
-  
   pure unit
+-}

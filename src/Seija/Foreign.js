@@ -605,7 +605,7 @@ function newBehavior(val) {
           } 
           else if(this.reducerFunc != null) {
             var retValue = this.reducerFunc(this.value,eVal);
-            if(retValue.value1 != null) {
+            if(retValue.value1 != null && this.reduerEffectFunc != null) {
                var cur_this = this;
                this.reduerEffectFunc(retValue.value1,function(val) {
                 cur_this.effectEvent.onFire(val);
